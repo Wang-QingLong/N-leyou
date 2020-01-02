@@ -1,0 +1,569 @@
+day01:
+         前端技术：
+
+         - 基础的HTML、CSS、JavaScript（基于ES6标准）
+         - JQuery
+         - Vue.js 2.0以及基于Vue的UI框架：Vuetify
+         - 前端构建工具：WebPack
+         - 前端安装包工具：NPM
+         - Vue脚手架：Vue-cli
+         - Vue路由：vue-router
+         - ajax框架：axios
+         - 基于Vue的富文本框架：quill-editor
+-----------------------------------------------------
+     1,     什么是SPA?
+        SPA，并不是去洗澡按摩，而是Single Page Application，即单页应用。整个后台管理系统只会出现一个HTML页面，剩余一切页面的内容都是通过Vue组件来实现。
+
+     2,    Vuetify是一个基于Vue的UI框架，可以利用预定义的页面组件快速构建页面。有点类似BootStrap框架。
+
+     UI组件：- BootStrap   UI框架：- element-ui：饿了么出品
+            - LayUI              - i-view：某公司出品
+            - EasyUI
+            - ZUI
+
+    3，为什么使用Vuetify？
+
+      - Vuetify几乎不需要任何CSS代码，而element-ui许多布局样式需要我们来编写
+      - Vuetify从底层构建起来的语义化组件。简单易学，容易记住。
+      - Vuetify基于Material Design（谷歌推出的多平台设计规范），更加美观，动画效果酷炫，且风格统一
+
+
+    4， 运行前端Vuetify中单文件组件(就是后缀名为.vue的文件)命令    npm run serve
+
+------------------------------------------------------------------------------------
+
+day02:
+        后端技术：
+
+        - 基础的SpringMVC、Spring 5.0和MyBatis3
+        - Spring Boot 2.1.3版本
+        - Spring Cloud 最新版 Greenwich.RELEASE
+        - Redis-4.0
+        - RabbitMQ-3.4
+        - Elasticsearch-6.2.4
+        - nginx-1.10.2
+        - MyCat
+        - Thymeleaf
+        - JWT
+
+要求：- JDK：统一使用JDK1.8.151
+     - 项目构建：maven3.3.x以上版本即可
+
+-----------------------------------------------------------------------
+  1，        一级域名：www.leyou.com
+            二级域名：manage.leyou.com , api.leyou.com
+            所谓一级和二级，都是倒过来看的，com为爷爷辈，leyou为父类，依次类推...
+
+   2，  搭建环境注意点:  引入依赖： 需要什么依赖导入什么依赖，分清依赖之间包含关系，
+                                每次引入某个依赖之后打开maven依赖关系表看看里面有什么
+                      创建包：  所有的模块建议包统一建在同一相对位置，第一方便扫描，第二方便查阅
+
+3，通用异常统一处理：
+
+        使用了web包下自带的org.springframework.http.ResponseEntity类，我们使用该类
+        主要是状态码和响应体  :T泛型指我们需要返回的数据类型
+           public class ResponseEntity<T> extends HttpEntity<T>
+
+        由于返回内容不统一，所以在出现问题的地方就不要返回，而是转为异常，然后再统一处理异常。这样就问题从返回值类型，转移到了异常的处理了
+
+
+      如何处理?
+
+           第一： 在service中在出现问题的地方使用抛异常
+                 eg:
+              throw new LyException(ExceptionEnum.PRICE_CANNOT_BE_NULL);
+
+           第二 ：使用SpringMVC提供的统一异常拦截器，就是自己新建一个类，建议放在common模块下
+                在类上加上注解@ControllerAdvice,它代表controller中的通知器，意思是只要                      controller有异常，这个业务就会自动生效，相当于在适配的controller中添加try
+                而在方法上加上注解@ExceptionHandler(LyException.class)，参数传入异常类的字节                码对象，它表示异常处理器，相当于catch
+
+                  //ResponseEntity中会返回2个值，一个是状态码，另外一个是消息主体
+
+
+
+
+ eg:
+
+    @ControllerAdvice
+    @Slf4j
+    public class BasicExceptionAdvice {
+
+     @ExceptionHandler(LyException.class)
+     public ResponseEntity<ExceptionResult> handleException(LyException e) {
+
+          return ResponseEntity.status(e.getStatus()).body(new ExceptionResult(e));
+                    }
+ }
+
+
+             第三:  为了更完美，可以自定义枚举类，自定义异常，自定义结果类，使得返回结果更加清晰灵活
+
+
+
+ 4，  域名：由于域名都是要钱的，所以我们只能采用其他技术去实现我们需要的效果
+           而能帮我们完成这个的，就是nginx  实现域名的解析和转换
+
+
+         本地域名解析
+
+          浏览器会首先在本机的hosts文件中查找域名映射的IP地址，如果查找到就返回IP ，没找到则进行域名服务器解析，一般本地解析都会失败，因为默认这个文件是空的。
+
+          - Windows下的hosts文件地址：C:/Windows/System32/drivers/etc/hosts
+          - Linux下的hosts文件所在路径： /etc/hosts
+
+
+        域名服务器解析
+        本地解析失败，才会进行域名服务器解析，域名服务器就是网络中的一台计算机，里面记录了所有注册备案的域名和ip映射关系，一般只要域名是正确的，并且备案通过，一定能找到。
+
+       解决域名解析问题：我们不可能去购买一个域名，因此我们可以伪造本地的hosts文件，实现对域名的解析。修改本地的host为： 因此借助一个工具：  SwitchHosts
+        127.0.0.1 api.leyou.com
+        127.0.0.1 manage.leyou.com
+
+      使用 SwitchHosts 步骤：
+                 第一：解压后将启动文件以管理员身份运行
+                 第二：写完解析路径之后先ping测试
+
+  5，知识点：
+
+             Web服务器分2类：
+
+             - web应用服务器(web容器)，如：
+               - tomcat(内置一个小小的服务器)
+               - resin
+               - jetty
+             - web服务器，如：
+               - Apache 服务器
+               - Nginx
+               - IIS 微软
+
+             区分：web服务器不能解析jsp等页面，只能处理js、css、html等静态资源。
+
+             并发：web服务器的并发能力远高于web应用服务器。
+
+ 6,使用ngnix     - 解压压缩包， 放置在一个没有中文目录的文件夹下
+                 -在nginx主配置文件nginx.conf中使用include指令引用我们的配置：
+                   	include vhost/*.conf;
+                 -nginx.conf所在目录新建文件夹vhost：并在vhost中创建文件leyou.conf：填写需要的配置
+
+              eg:
+                      upstream leyou-manage{
+                      	server	127.0.0.1:9001;
+                      }
+                      upstream leyou-gateway{
+                      	server	127.0.0.1:10010;
+                      }
+                      upstream leyou-portal{
+                      	server	127.0.0.1:9002;
+                      }
+
+                      server {
+                      	listen       80;
+                      	server_name  manage.leyou.com;
+
+                      	location / {
+                      		proxy_pass http://leyou-manage;
+                      		proxy_connect_timeout 600;
+                      		proxy_read_timeout 5000;
+                      	}
+                      }
+                      server {
+                      	listen       80;
+                      	server_name  api.leyou.com;
+
+                          location /api/upload {
+                              rewrite "^/(.*)$" /zuul/$1;
+                          }
+
+                      	location / {
+                      		proxy_pass   http://leyou-gateway;
+                      		proxy_connect_timeout 600;
+                      		proxy_read_timeout 5000;
+                      	}
+                      }
+                      server {
+                      	listen       80;
+                      	server_name  www.leyou.com;
+                      	location /item/ {
+                      		root	html;
+                      	}
+                      	location / {
+                      		proxy_pass   http://leyou-portal;
+                      	}
+                      }
+
+               解读：
+
+               - upstream：定义一个负载均衡集群，例如leyou-manage
+                 - server：集群中某个节点的ip和port信息，可以配置多个，实现负载均衡，默认轮询
+               - server：定义一个监听服务配置
+                 - listen：监听的端口
+                 - server_name：监听的域名
+                 - location：匹配当前域名下的哪个路径。例如：/，代表的是一切路径
+                   - proxy_pass：监听并匹配成功后，反向代理的目的地，可以指向某个ip和port，或者指向upstream定义的负载均衡集群，nginx反向代理时会轮询中服务列表中选择。
+
+
+
+7,跨域问题(以下是复杂写法，最简单的就是在controller类上加上注解@CrossOrigin(allowedHeaders = "*",allowCredentials = "true")):但是使用注解的话每次都需要在controller上面加注解，还有就是也会存在问题，就是图片上传会出现跨域问题，所以推荐使用代码写法
+
+代码写法:创建2个类：CORSProperties和GLObalCORSConfig，外加yml里面配上相关配置即可
+
+
+
+----以下是了解部分------
+         跨域是指跨域名的访问，以下情况都属于跨域：
+
+                    域名不同
+
+                    www.jd.com 与 www.taobao.com
+
+                    域名相同，端口不同
+
+                    www.jd.com:8080 与 www.jd.com:8081
+
+                    二级域名不同
+
+                    item.jd.com 与 miaosha.jd.com
+
+如果域名和端口都相同，但是请求路径不同，不属于跨域，如：www.jd.com/item 和 www.jd.com/goods
+跨域不一定会有跨域问题。因为跨域问题是浏览器对于ajax请求的一种安全限制：一个页面发起的ajax请求，只能是于当前页同域名及端口的路径，这能有效的阻止跨站攻击。因此：跨域问题 是针对ajax的一种限制。
+
+目前比较常用的跨域解决方案有3种：
+                                                                                                       - Jsonp
+                                                                                                        最早的解决方案，利用script标签可以跨域的原理实现。
+                                                                                                        限制：
+                                                                                                        - 需要服务的支持
+                                                                                                        - 只能发起GET请求
+                                                                                                      - nginx反向代理
+                                                                                                        思路是：利用nginx反向代理把跨域为不跨域，支持各种请求方式
+                                                                                                        缺点：需要在nginx进行额外配置，语义不清晰
+                                                                                                      - CORS
+                                                                                                        规范化的跨域请求解决方案，安全可靠。
+                                                                                                        优势：
+                                                                                                        - 在服务端进行控制是否允许跨域，可自定义规则
+                                                                                                        - 支持各种请求方式
+                                                                                                        缺点：
+                                                                                                        - 可能会产生额外的请求
+
+                                                                                             我们这里会采用cors的跨域方案。
+
+         CORS是一个W3C标准，全称是"跨域资源共享"（Cross-origin resource sharing）。
+
+         它允许浏览器向跨源服务器，发出XMLHttpRequest请求，从而克服了AJAX只能同源使用的限制。
+
+         CORS需要浏览器和服务器同时支持。目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
+
+         - 浏览器端：
+           目前，所有浏览器都支持该功能（IE10以下不行）。整个CORS通信过程，都是浏览器自动完成，不需要用户参与。
+         - 服务端：
+           CORS通信与AJAX没有任何差别，因此你不需要改变以前的业务逻辑。只不过，浏览器会在请求中携带一些头信息，我们需要以此判断是否运行其跨域，然后在响应头中加入一些信息即可。这一般通过过滤器完成即可。
+
+--         浏览器会将ajax请求分为两类，其处理方案略有差异：简单请求、特殊请求。
+
+简单请求
+
+         只要同时满足以下两大条件，就属于简单请求。：
+
+         （1) 请求方法是以下三种方法之一：
+
+         - HEAD
+         - GET
+         - POST
+
+         （2）HTTP的头信息不超出以下几种字段：
+
+         - Accept
+         - Accept-Language
+         - Content-Language
+         - Last-Event-ID
+         - Content-Type：只限于三个值application/x-www-form-urlencoded、multipart/form-data、           text/plain
+
+
+         Origin中会指出当前请求属于哪个域（协议+域名+端口）。服务会根据这个值决定是否允许其跨域。
+
+          如果服务器允许跨域，需要在返回的响应头中携带下面信息：
+           Access-Control-Allow-Origin: http://manage.leyou.com
+           Access-Control-Allow-Credentials: true
+
+           - Access-Control-Allow-Origin：可接受的域，是一个具体域名或者*，代表任意
+           - Access-Control-Allow-Credentials：是否允许携带cookie，默认情况下，cors不会携带cookie，            除非这个值是true
+
+                    注意：
+
+                     如果跨域请求要想操作cookie，需要满足3个条件：
+
+                        - 服务的响应头中需要携带Access-Control-Allow-Credentials并且为true。
+                        - 浏览器发起ajax需要指定withCredentials 为true
+                        - 响应头中的Access-Control-Allow-Origin一定不能为*，必须是指定的域名
+
+特殊请求
+
+             不符合简单请求的条件，会被浏览器判定为特殊请求,，例如请求方式为PUT。
+
+             预检请求
+
+             特殊请求会在正式通信之前，增加一次HTTP查询请求，称为"预检"请求（preflight）。
+
+             浏览器先询问服务器，当前网页所在的域名是否在服务器的许可名单之中，以及可以使用哪些HTTP动词和头信息字段。只有得到肯定答复，浏览器才会发出正式的XMLHttpRequest请求，否则就报错。
+
+             一个“预检”请求的样板：
+
+                 OPTIONS /cors HTTP/1.1
+                 Origin: http://manage.leyou.com
+                 Access-Control-Request-Method: PUT
+                 Access-Control-Request-Headers: X-Custom-Header
+                 Host: api.leyou.com
+                 Accept-Language: en-US
+                 Connection: keep-alive
+                 User-Agent: Mozilla/5.0...
+
+             与简单请求相比，除了Origin以外，多了两个头：
+
+             - Access-Control-Request-Method：接下来会用到的请求方式，比如PUT
+             - Access-Control-Request-Headers：会额外用到的头信息
+
+             预检请求的响应
+
+             服务的收到预检请求，如果许可跨域，会发出响应：
+
+                 HTTP/1.1 200 OK
+                 Date: Mon, 01 Dec 2008 01:15:39 GMT
+                 Server: Apache/2.0.61 (Unix)
+                 Access-Control-Allow-Origin: http://manage.leyou.com
+                 Access-Control-Allow-Credentials: true
+                 Access-Control-Allow-Methods: GET, POST, PUT
+                 Access-Control-Allow-Headers: X-Custom-Header
+                 Access-Control-Max-Age: 1728000
+                 Content-Type: text/html; charset=utf-8
+                 Content-Encoding: gzip
+                 Content-Length: 0
+                 Keep-Alive: timeout=2, max=100
+                 Connection: Keep-Alive
+                 Content-Type: text/plain
+
+             除了Access-Control-Allow-Origin和Access-Control-Allow-Credentials以外，这里又额外多出              3个头：
+
+             - Access-Control-Allow-Methods：允许访问的方式
+             - Access-Control-Allow-Headers：允许携带的头
+             - Access-Control-Max-Age：本次许可的有效时长，单位是秒，过期之前的ajax请求就无需再次进行预              检了
+
+             如果浏览器得到上述响应，则认定为可以跨域，后续就跟简单请求的处理是一样的了。
+
+             2.5.3.实现非常简单
+
+             虽然原理比较复杂，但是前面说过：
+
+             - 浏览器端都有浏览器自动完成，我们无需操心
+             - 服务端可以通过拦截器统一实现，不必每次都去进行跨域判定的编写。
+
+             事实上，SpringMVC已经帮我们写好了CORS的跨域过滤器：CorsFilter ,内部已经实现了刚才所讲的判定              逻辑，我们直接用就好了。
+
+----以上是了解部分------
+
+---day03:
+
+
+---day04:
+
+
+     异步查询工具axios   https://www.kancloud.cn/yunye/axios/234845
+
+     axios支持Http的所有7种请求方式，并且有对应的方法如：Get、POST与其对应。另外这些方法最终返回的是一个Promise，对异步调用进行封装。因此，我们可以用.then() 来接收成功时回调，.catch()完成失败时回调
+
+
+     axios.get("/item/category/list?pid=0") // 请求路径和请求参数拼接    .then(function(resp){        // 成功回调函数    })
+  .catch(function(){        // 失败回调函数    })
+
+  // 参数较多时，可以通过params来传递参数
+  axios.get("/item/category/list", {
+  params:{            pid:0        }    })  
+  .then(function(resp){})// 成功时的回调  
+  .catch(function(error){})// 失败时的回调
+比如新增一个用户：
+
+ axios.post("/user",{ name:"Jack",age:21})
+ .then(function(resp){})
+ .catch(function(error){})
+
+
+ ---day05
+
+----day06:
+
+
+
+
+---数据库sql关键词冲突
+
+仔细阅读错误说明，说sql语句有误，仔细观察发现Sql语句中有一个字段，名为numeric，这个字段名称与数据库名称冲突，这种情况下我们都需要对字段进行转义，变为普通字符串。
+
+但是问题来了，sql是由通用mapper生成的，我们该如何修改Sql语句中的字段呢？
+有两种办法，
+
+方案一：通过mapper中的@Column注解，来声明这个字段对应的列名
+方案2：通过通用mapper的统一配置，全局修改关键词冲突问题
+
+推荐方案2：在application.yml文件中添加一段通用mapper配置：
+
+  mapper:
+          wrap-keyword: "`{0}`"
+
+
+
+
+----SPU和SKU数据结构
+
+SPU：Standard Product Unit （标准产品单位） ，一组具有共同属性的商品集
+
+SKU：Stock Keeping Unit（库存量单位），SPU商品集因具体特性不同而细分的每个商品
+
+eg:
+
+- 华为Mate10 就是一个商品集（SPU）
+- 因为颜色、内存等不同，而细分出不同的Mate10，如亮黑色128G版。（SKU）
+
+所以：
+- SPU是一个抽象的商品集概念，为了方便后台的管理。
+- SKU才是具体要销售的商品，每一个SKU的价格、库存可能会不一样，用户购买的是SKU而不是SPU
+
+
+
+--- 拓展通用Mapper
+
+   需要注意的是，上面的categoryMapper调用了一个selectByIdList的方法，而这个方法在我们学过的通用Mapper中是没有的。我们的方法都是继承自Mapper<T>：事实上，除了Mapper<T>接口以为，通用mapper还提供了很多其它XxxMapper接口供我们使用：
+
+   所以， 只要我们的CategoryMapper继承了这些接口，那么就具备了他们的功能。
+
+   不过呢，不仅仅是CategoryMapper有这样的需求，以后的其它Mapper也有这样的需求，我们可以自定义一个BaseMapper接口，在里面把需要的其它接口都继承过来。以后再编写Mapper只要继承BaseMapper即可。
+
+
+所以：eg:
+
+@RegisterMapperpublic interface BaseMapper<T> extends Mapper<T>, IdListMapper<T, Long>, IdsMapper<T> {}
+
+----富文本编辑器
+
+    通俗来说：富文本，就是比较丰富的文本编辑器。普通的框只能输入文字，而富文本还能给文字加颜色样式等。
+
+    富文本编辑器有很多，例如：KindEditor、Ueditor。但并不原生支持vue
+
+    但是我们今天要说的，是一款支持Vue的富文本编辑器：vue-quill-editor
+
+GitHub的主页：https://github.com/surmon-china/vue-quill-editor
+
+Vue-Quill-Editor是一个基于Quill的富文本编辑器：Quill的官网https://quilljs.com/
+
+
+第一步：安装，使用npm命令：
+
+    npm install vue-quill-editor --save
+
+第二步：加载，在js中引入：
+
+全局使用：
+
+    import Vue from 'vue'
+    import VueQuillEditor from 'vue-quill-editor'
+
+    const options = {}; /* { default global options } */
+
+    Vue.use(VueQuillEditor, options); // options可选
+
+
+
+局部使用：
+
+    import 'quill/dist/quill.core.css'
+    import 'quill/dist/quill.snow.css'
+    import 'quill/dist/quill.bubble.css'
+
+    import {quillEditor} from 'vue-quill-editor'
+
+    var vm = new Vue({
+        components:{
+            quillEditor
+        }
+    })
+
+
+
+第三步：页面引用：
+
+    <quill-editor v-model="goods.spuDetail.description" :options="editorOption"/>
+
+
+自定义的富文本编辑器
+
+不过这个组件有个小问题，就是图片上传的无法直接上传到后台，因此我们对其进行了封装，支持了图片的上传。
+
+
+使用也非常简单：
+
+    <v-stepper-content step="2">
+        <v-editor v-model="goods.spuDetail.description" url="/upload/signature" needSignature/>
+    </v-stepper-content>
+
+- url：是图片上传的路径或者上传阿里OSS时的签名路径，这里输入的是签名路径
+- v-model：双向绑定，将富文本编辑器的内容绑定到goods.spuDetail.description
+
+
+
+----live-server
+
+没有webpack，我们就无法使用webpack-dev-server运行这个项目，实现热部署。
+
+所以，这里我们使用另外一种热部署方式：live-server，
+
+3.2.1.简介
+
+地址；https://www.npmjs.com/package/live-server
+
+
+
+这是一款带有热加载功能的小型开发服务器。用它来展示你的HTML / JavaScript / CSS，但不能用于部署最终的网站。
+
+3.2.2.非必须，安装和运行参数
+
+安装，使用npm命令即可，这里建议全局安装，以后任意位置可用
+
+    npm install -g live-server
+
+
+
+运行时，直接输入命令：
+
+    live-server
+
+另外，你可以在运行命令后，跟上一些参数以配置：
+
+- --port=NUMBER - 选择要使用的端口，默认值：PORT env var或8080
+- --host=ADDRESS - 选择要绑定的主机地址，默认值：IP env var或0.0.0.0（“任意地址”）
+- --no-browser - 禁止自动Web浏览器启动
+- --browser=BROWSER - 指定使用浏览器而不是系统默认值
+- --quiet | -q - 禁止记录
+- --verbose | -V - 更多日志记录（记录所有请求，显示所有侦听的IPv4接口等）
+- --open=PATH - 启动浏览器到PATH而不是服务器root
+- --watch=PATH - 用逗号分隔的路径来专门监视变化（默认值：观看所有内容）
+- --ignore=PATH- 要忽略的逗号分隔的路径字符串（anymatch -compatible definition）
+- --ignorePattern=RGXP-文件的正则表达式忽略（即.*\.jade）（不推荐使用赞成--ignore）
+- --middleware=PATH - 导出要添加的中间件功能的.js文件的路径; 可以是没有路径的名称，也可以是引用middleware文件夹中捆绑的中间件的扩展名
+- --entry-file=PATH - 提供此文件（服务器根目录）代替丢失的文件（对单页应用程序有用）
+- --mount=ROUTE:PATH - 在定义的路线下提供路径内容（可能有多个定义）
+- --spa - 将请求从/ abc转换为/＃/ abc（方便单页应用）
+- --wait=MILLISECONDS - （默认100ms）等待所有更改，然后重新加载
+- --htpasswd=PATH - 启用期待位于PATH的htpasswd文件的http-auth
+- --cors - 为任何来源启用CORS（反映请求源，支持凭证的请求）
+- --https=PATH - 到HTTPS配置模块的路径
+- --proxy=ROUTE:URL - 代理ROUTE到URL的所有请求
+- --help | -h - 显示简洁的使用提示并退出
+- --version | -v - 显示版本并退出
+
+3.2.3.测试
+
+我们进入leyou-portal目录，输入命令：
+
+    live-server --port=9002    //设置端口
+
+
+
+
+

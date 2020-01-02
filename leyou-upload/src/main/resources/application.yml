@@ -1,0 +1,39 @@
+server:
+  port: 8082
+logging:
+    level:
+     com.leyou: debug
+spring:
+  application:
+    name: leyou-item-upload
+  servlet:
+    multipart:
+      max-file-size: 5MB  #限制文件上传的大小
+eureka:
+  client:
+    service-url:  #EurekaServer 地址  # 下面指向的是注册中心的defaultZone
+     defaultZone: http://127.0.0.1:10086/eureka
+    register-with-eureka: true  #是否注册给eureka容器，默认是true
+    fetch-registry: false     #是否拉取服务列表，默认是ture
+    registry-fetch-interval-seconds: 30 #拉取服务的间隔时间，默认30秒
+  instance:
+    ip-address: 127.0.0.1  #ip地址
+    prefer-ip-address: true  # 更倾向于使用ip，而不是host名
+    lease-expiration-duration-in-seconds: 90   #服务(过期)失效时间，默认值90秒
+    lease-renewal-interval-in-seconds: 30     #心跳(续约)时间默认为30秒
+
+ly:
+  oss:
+    accessKeyId: LTAI4FsCMUeJXFmVqx7TFVYo      #换成自己的阿里云的keyId
+    accessKeySecret: SN81J4AQoYuE6fr6hos0hYfZh4U1Eh
+    host: http://wang-leyou88.oss-cn-shanghai.aliyuncs.com # 访问oss的域名，很重要bucket + endpoint
+    endpoint: oss-cn-shanghai.aliyuncs.com # 你的服务的端点，不一定跟我一样
+    dir: "" # 保存到bucket的某个子目录
+    expireTime: 20 # 过期时间，单位是S
+    maxFileSize: 5242880 #文件大小限制，这里是5M
+
+
+
+
+
+

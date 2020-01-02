@@ -1,0 +1,218 @@
+什么是消息队列
+
+消息队列，即MQ，Message Queue。
+
+
+AMQP和JMS
+
+MQ是消息通信的模型，并不是具体实现。现在实现MQ的有两种主流方式：AMQP、JMS。
+
+两者间的区别和联系：
+
+- JMS是定义了统一的接口，来对消息操作进行统一；AMQP是通过规定协议来统一数据交互的格式
+- JMS限定了必须使用Java语言；AMQP只是协议，不规定实现方式，因此是跨语言的。
+- JMS规定了两种消息模型；而AMQP的消息模型更加丰富
+
+
+常见MQ产品
+
+- ActiveMQ：基于JMS
+- RabbitMQ：基于AMQP协议，erlang语言开发，稳定性好
+- RocketMQ：基于JMS，阿里巴巴产品，目前交由Apache基金会
+- Kafka：分布式消息系统，高吞吐量
+
+
+
+RabbitMQ
+
+RabbitMQ是基于AMQP的一款消息管理系统
+
+官网： http://www.rabbitmq.com/
+
+官方教程：http://www.rabbitmq.com/getstarted.html
+
+下载和安装
+
+1.3.1.下载
+
+官网下载地址：http://www.rabbitmq.com/download.html
+
+
+五种消息模型
+
+RabbitMQ提供了6种消息模型，但是第6种其实是RPC，并不是MQ，因此不予学习。那么也就剩下5种。
+
+但是其实3、4、5这三种都属于订阅模型，只不过进行路由的方式不同。
+
+RPC: (remoteprocedurecall,远程过程调用)是一种通过网络从远程计算机程序上请求服务,而不需要了解底层网络细节的应用程序通信协议
+
+
+第一种简单模式：一对一
+第二种工作模式(工作队列或者竞争消费者模式)：一对多，但其实本质也是一对一，劳者多劳模式
+
+面试题：避免消息堆积？
+
+1）采用workqueue，多个消费者监听同一队列。
+
+2）接收到消息以后，而是通过线程池，异步消费。
+
+
+第三种订阅模式：一对多: 先将消息交给交换机，交换机不能存储数据，它会把数据交给消息队列
+                    然后消息队列再把消息发出去，当交换机没有和消息队列绑定时会出现
+                    消息丢失(消息消亡状态)
+
+Exchange（交换机）只负责转发消息，不具备存储消息的能力，因此如果没有任何队列与Exchange绑定，或者没有符合路由规则的队列，那么消息会丢失！
+Exchange类型有以下几种：
+
+    Fanout：广播，将消息交给所有绑定到交换机的队列
+
+    Direct：定向，把消息交给符合指定routing key 的队列
+
+    Topic：通配符，把消息交给符合routing pattern（路由模式） 的队列
+
+--Fanout：即广播模式:
+
+在广播模式下，消息发送流程是这样的：
+
+- 1）  可以有多个消费者
+- 2）  每个消费者有自己的queue（队列）
+- 3）  每个队列都要绑定到Exchange（交换机）
+- 4）  生产者发送的消息，只能发送到交换机，交换机来决定要发给哪个队列，生产者无法决定。
+- 5）  交换机把消息发送给绑定过的所有队列
+- 6）  队列的消费者都能拿到消息。实现一条消息被多个消费者消费
+
+
+
+
+
+
+消息确认机制（ACK）
+
+RabbitMQ有一个ACK机制。当消费者获取消息后，会向RabbitMQ发送回执ACK，告知消息已经被接收。不过这种回执ACK分两种情况：
+
+- 自动ACK：消息一旦被接收，消费者自动发送ACK
+- 手动ACK：消息接收后，不会发送ACK，需要手动调用
+
+channel.basicConsume(QUEUE_NAME, false, consumer);
+果第二个参数为true，则会自动进行ACK；如果为false，则需要手动ACK。方法的声明：
+
+消息持久化机制:
+
+持久化
+
+如何避免消息丢失？
+
+1）  消费者的ACK机制。可以防止消费者丢失消息。
+
+2）  但是，如果在消费者消费之前，MQ就宕机了，消息就没了。
+
+是可以将消息进行持久化呢？
+
+要将消息持久化，前提是：队列、Exchange都持久化
+
+如何使用springamqp ,
+
+---- 发送消息方
+
+ 在需要发送消息的地方加上注解
+    @Autowired
+   private AmqpTemplate amqpTemplate;
+
+   然后在方法内部写上方法
+
+    //商品服务负责消息的发出，routingkey不同，所以其实可以把消息发给不同队列
+           this.amqpTemplate.convertAndSend(交换机名字, rouingKey, 需要发送的数据);
+
+ 导入依赖
+
+    <!--Springamqp-->
+         <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-amqp</artifactId>
+         </dependency>
+
+  配置:
+
+
+  rabbitmq: #配置rabbitMq的消息
+    host: 192.168.2.128   #虚拟机地址
+    virtual-host: /leyou
+    username: leyou      #登录账户
+    password: leyou
+    template: #关于生产者的配置
+      retry:
+        enabled: true   #允许重试
+        initial-interval: 10000ms  #默认重试间隔
+        max-interval:  80000ms #最大间隔
+        multiplier: 2  #间隔倍数
+    publisher-confirms: true  #发送确认
+
+---接收消息方
+1,需要写监听方法 比如这里的search
+
+@Component
+public class ItemListener {
+
+    @Autowired
+    private GoodsIndexService goodsIndexService;
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = SEARCH_ITEM_UP, durable = "true"),
+            exchange = @Exchange(
+                    name = ITEM_EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+            key = ITEM_UP_KEY
+    ))
+    public void listenInsert(Long spuId){
+        if(spuId != null){
+            // 新增索引
+            goodsIndexService.createIndex(spuId);
+        }
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = SEARCH_ITEM_DOWN, durable = "true"),
+            exchange = @Exchange(
+                    name = ITEM_EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+            key = ITEM_DOWN_KEY
+    ))
+    public void listenDelete(Long spuId){
+        if(spuId != null){
+            // 删除
+            goodsIndexService.deleteById(spuId);
+        }
+    }
+}
+
+2,需要导入依赖：
+
+ <!--Springamqp-->
+         <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-amqp</artifactId>
+         </dependency>
+
+3，需要书写配置：
+
+
+  rabbitmq: #配置rabbitMq的消息
+    host: 192.168.2.128   #虚拟机地址
+    virtual-host: /leyou
+    username: leyou      #登录账户
+    password: leyou
+
+消费者的确认机制在内部已经有了，所以不需要写
+
+
+注意：由于默认情况下，AMQP会使用JDK的序列化方式进行处理，传输数据比较大，效率太低。我们可以
+自定义消息转换器，使用JSON来处理
+
+一旦一方加了，所有都要加
+
+@Configuration
+public class RabbitConfig {
+
+    @Bean
+    public Jackson2JsonMessageConverter messageConverter(){
+        return new Jackson2JsonMessageConverter();
+    }
+}

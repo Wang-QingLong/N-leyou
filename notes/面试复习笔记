@@ -1,0 +1,575 @@
+1,    java的跨平台原理：
+            java通过不同的系统，不同版本，不同位数的java虚拟机(jvm)来屏蔽不同的系统指令集差异而对外统一的接口（java API），对于开发者而言，只需要在不同的系统上安装不同的java虚拟机，这时你的java只要遵循java规范，就可以在所有的操作系统上面操作运行java程序了。
+
+2，   java当中，数据类型分为四类八种，byte  short  int  long  float  double char boolean
+                        各占字节 1 2 4 8 4 8 2 true false
+
+3,    面对对象的特征: 封装，继承，多态，抽象
+
+4，   有了基本数据类型，为什么还需要包装类？ : Java是一个面向对象的语言，而基本的数据类型，不具备面向对象的特性。
+
+5,   ==和equals区别？
+     ==用来判断两个变量之间的的值是否相等。变量就可以分为基本数据类型变量，引用类型。
+     如果是基本数据类型的变量直接比较值而引用类型要比较对应的引用的内存的首地址。
+     equals 用来比较两个对象长得是否一样。判断两个对象的某些特征是否一样。实际上就是调用对象的      equals方法进行比较。
+
+6，  String,Stringbuild,StringBuffer区别？
+
+   String是内容不可变的字符串 。String底层使用了一个不可变的字符数组 (final char[])
+   而StringBuillder StringBuffer,是内容可以改变的字符串 。StringBuillder StringBuffer底层使用的可变的字符数组（没有使用    final来修饰）。
+
+   StringBuilder是线程不安全的，效率较高.而StringBuffer是线程安全的，效率较低。
+
+7， 讲一下关于集合：
+      ArrayList是List接口的可变数组非同步实现，并允许包括null在内的所有元素。
+      底层使用数组实现
+      该集合是可变长度数组，数组扩容时，会将老数组中的元素重新拷贝一份到新的数组中，每次数组容量增长大约是其容量的1.5倍，这种操作的代价很高。
+      采用了Fail-Fast机制，面对并发的修改时，迭代器很快就会完全失败，而不是冒着在将来某个不确定时间发生任意不确定行为的风险
+      remove方法会让下标到数组末尾的元素向前移动一个单位，并把最后一位的值置空，方便GC
+----------------------------------------------------------------------------
+      LinkedList是List接口的双向链表非同步实现，并允许包括null在内的所有元素。
+      底层的数据结构是基于双向链表的，该数据结构我们称为节点
+      双向链表节点对应的类Node的实例，Node中包含成员变量：prev，next，item。其中，prev是该节点的上一个节点，next是该节点的下一个节点，item是该节点所包含的值。
+      它的查找是分两半查找，先判断index是在链表的哪一半，然后再去对应区域查找，这样最多只要遍历链表的一半节点即可找到。
+-------------------------------------------------------------------------------
+      HashMap是基于哈希表的Map接口的非同步实现，允许使用null值和null键，但不保证映射的顺序。
+      底层使用数组实现，数组中每一项是个单向链表，即数组和链表的结合体；当链表长度大于一定阈值时，链表转换为红黑树，这样减少链表查询时间。
+      HashMap在底层将key-value当成一个整体进行处理，这个整体就是一个Node对象。HashMap底层采用一个Node[]数组来保存所有的key-value对，当需要存储一个Node对象时，会根据key的hash算法来决定其在数组中的存储位置，在根据equals方法决定其在该数组位置上的链表中的存储位置；当需要取出一个Node时，也会根据key的hash算法找到其在数组中的存储位置，再根据equals方法从该位置上的链表中取出该Node。
+      HashMap进行数组扩容需要重新计算扩容后每个元素在数组中的位置，很耗性能
+      采用了Fail-Fast机制，通过一个modCount值记录修改次数，对HashMap内容的修改都将增加这个值。迭代器初始化过程中会将这个值赋给迭代器的expectedModCount，在迭代过程中，判断modCount跟expectedModCount是否相等，如果不相等就表示已经有其他线程修改了Map，马上抛出异常
+
+8，ArrayList和LinkedList的区别 ?
+
+    List常用的 ArrayList和LinkedList。区别和使用场景 ?
+    ArrayList底层使用时数组。 LinkedList使用的是链表。
+    数组查询具有所有查询特定元素比较快。而插入和删除和修改比较慢 (数组在内存中是一块连续的内存，如果插入或    删除是需要移动内存 )。
+    链表不要求内存是连续的，在当前元素中存放下一个或上一个元素的地址。查询时需要从头部开始，一个一个的找。    所以查询效率低 。插入时不需要移动内存，只需改变引用指向即可。所以插入或者删除的效率高。
+
+     ArrayList使用在查询比较多，但是插入和删除比较少的情况，而LinkedList使用在查询比较少而插入和删除比较多的情况。
+
+9，讲一下HashMap和HashTable的区别?HashTable和ConcurrentHashMap的区别?
+
+  相同点： HashMap和HasheTalbe都可以使用来存储 key--value的数据。
+  区别：
+  HashMap是可以把 null作为key或者value的，而 HashTable是不可以的。
+  HashMap是线程不安全的，效率较高。而 HashTalbe是线程安全的，效率较低。
+
+  我想线程安全但是我又想效率高？
+  通过把整个 Map分为N个Segment（类似 HashTable），可以提供相同的线程安全，但是效率提升 N倍，默认提升 16倍。
+
+
+
+10，讲一下线程的几种实现方式，启动方式，区分方式
+
+    实现方式： 1，通过继承Thread类实现一个线程
+             2，通过实现Runnable接口实现一个线程
+             继承的拓展性不强，java总支持单继承，但是接口可以多实现
+    如何启动：
+           Thread thread = new Thread(继承了 Thread的对象 /实现了 Runnable的对象 )
+           thread.setName(“设置一个线程名称 ”);
+           thread.start();
+           启动线程使用start方法，而启动了以后执行的是run方法。
+
+        ③怎么区分线程？在一个系统中有很多线程，每个线程都会打印日志，我想区分是哪个线程打印的怎么办？
+        thread.setName(“设置一个线程名称 ”); 这是一种规范，在创建线程完成后，都需要设置名称。
+
+11，有没有了解过线程并发库？
+
+         JDK5中增加了Doug Lea的并发库，这一引进给 Java线程的管理和使用提供了强大的便利性。  java.util.current包中提供了对线程优化、管理的各项操作，使得线程的使用变得的心应手。该包提供了线程的运行，线程池的创建，线程生命周期的控制 .
+
+        Java通过Executors提供四个静态方法创建四种线程池，分别为：
+        newCachedThreadPool创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。
+        newFixedThreadPool 创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。
+        newScheduledThreadPool 创建一个定长线程池，支持定时及周期性任务执行。
+        newSingleThreadExecutor 创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序 (FIFO, LIFO, 优先级 )执行。
+
+12， 线程池的作用？
+
+       线程池的作用？
+
+       限定线程的个数，不会导致由于线程过多导致系统运行缓慢或崩溃
+       线程池不需要每次都去创建或销毁，节约了资源、
+       线程池不需要每次都去创建，响应时间更快。
+
+13，讲一下关于http中get和post请求区别？
+
+   GET，POST，PUT，DELETE就对应着对这个资源的查，改 ，增 ，删 4个操作,具体点来讲GET一般用于获取/查询资源信息，而POST一般用于更新资源信息。
+     1、Get请求提交的数据会在地址栏显示出来，而post请求不会再地址栏显示出来.
+     2、Get请求由于浏览器对地址长度的限制而导致传输的数据有限制。而POST请求不会因为地址长度限制而导致传输数据限制。
+     3，post相对更安全，因为数据在请求体当中。
+
+14，说一下你对servlet的理解？
+
+      Servlet（Server Applet），全称Java Servlet， 是用Java编写的服务器端程序。而这些Sevlet都要实现Servlet这个接口。 其主要功能在于交互式地浏览和修改 数据，生成动态Web内容 。Servlet运行于支持Java的应用服务器中。
+
+      HttpServlet 重写doGet和doPost方法或者你也可以重写service方法完成对get和post请求的响应
+
+15，servlet的生命周期？
+
+      servlet有良好的生存期的定义，包括加载和实例化、初始化、处理请求 以及服务结束 。这个生存期由 javax.servlet.Servlet接口的 init,service和destroy方法表达。
+
+     加载Servlet的class---->实例化Servlet----->调用Servlet的init完成初始化---->响应请求（Servlet的service方法）----->Servlet容器关闭时(Servlet的destory方法)
+
+     Servlet启动时，开始加载 servlet生命周期开始。 Servlet被服务器实例化后，容器运行其 init方法，请求到达时运行其 service方法， service方法自动派遣运行与请求对应的 doXXX方法（ doGet，doPost）等，当服务器决定将实例销毁的时候 (服务器关闭 )调用其 destroy方法。
+
+16， 什么是jsp,jsp和servlet区别？
+
+       jsp 本质上就是一个Servlet，它是 Servlet 的一种特殊形式（由 SUN 公司推出），每个 jsp 页面都是一个servlet实例。
+       Servlet 是由 Java 提供用于开发 web 服务器应用程序的一个组件，运行在服务端，由 servlet 容器管理，用来生成动态内容。一个 servlet 实例是实现了特殊接口 Servlet 的 Java 类，所有自定义的 servlet 均必须实现 Servlet 接口。
+       区别：
+       jsp 是 html 页面中内嵌的Java 代码，侧重页面显示；
+       Servlet 是 html 代码和 Java 代码分离，侧重逻辑控制，mvc 设计思想中jsp 位于视图层，servlet 位于控制层
+       Jsp 运行机制：
+       JVM 只能识别 Java 类，并不能识别 jsp 代码！web 容器收到以.jsp 为扩展名的 url 请求时，会将访问请求交给tomcat 中 jsp 引擎处理，每个 jsp 页面第一次被访问时，jsp 引擎将 jsp 代码解释为一个 servlet 源程序，接着编译servlet 源程序生成.class 文件，再有 web 容器 servlet 引擎去装载执行servlet 程序，实现页面交互。
+
+17，  jsp 有哪些域对象和内置对象及他们的作用？
+
+      四大域对象：
+          1，pageContext  page域指当前页面,在当前jsp页面有效，跳到其他页面无效
+          2，request       request域指一次请求范围内有效，从http请求到服务器处理结束，返回响应的整个过程。
+          3，session   session域指当前会话有效范围，浏览器从打开到关闭的过程中，转发，重定向均可使用
+          4，application context 域指只能在同一个web中使用，服务器未关闭或者重启，数据就有效。
+
+      九大内置对象：
+
+          9个内置的对象：
+          request 用户端请求，此请求会包含来自 GET/POST请求的参数
+          response 网页传回用户端的回应
+          pageContext 网页的属性是在这里管理
+          session 与请求有关的会话期
+          application servlet正在执行的内容
+          out 用来传送回应的输出
+          config servlet的构架部件
+          page JSP网页本身
+          exception 针对错误网页，未捕捉的例外
+
+18，session和cookie的区别？
+
+    Session和cookie都是会话(Seesion)跟踪技术。Cookie通过在客户端记录信息确定用户身份，Session通过在服务器端记录信息确定用户身份。但是Session的实现依赖于Cookie,sessionId(session的唯一标识需要存放在客户端).
+    cookie 和session 的区别：
+    1、cookie数据存放在客户的浏览器上， session数据放在服务器上。
+    2、cookie不是很安全，别人可以分析存放在本地的 COOKIE并进行COOKIE欺骗
+       考虑到安全应当使用 session。
+    3、session会在一定时间内保存在服务器上。当访问增多，会比较占用你服务器的性能 ,考虑到减轻服务器性能方面，应当使用 COOKIE。
+    4、单个cookie保存的数据不能超过 4K，很多浏览器都限制一个站点最多保存 20个cookie。
+    5、所以个人建议：
+       将登陆信息 等重要信息存放为 SESSION
+       其他信息如果需要保留，可以放在 COOKIE中，比如购物车
+
+    购物车最好使用cookie，但是cookie是可以在客户端禁用的，这时候我们要使用cookie+数据库的方式实现，当从cookie中不能取出数据时，就从数据库获取。
+
+
+19，mvc都由哪些技术来实现？
+
+     M(Model) 模型 javabean
+     V(View) 视图  html jsp volicity freemaker
+     C(Control) 控制器  Servlet,Action
+
+
+     Jsp+Servlet+javabean 最经典 mvc模式,实际上就是 model2的实现方式，就是把视图和逻辑隔离开来
+     Model1的方式  jsp+service+dao
+     MOdel2的方式  jsp+servlet+service+dao
+
+     使用struts2和springmvc这样的 mvc框架后， jsp+核心控制器 +action+javabean
+
+20，     数据库的分类及常用的数据库
+
+              数据库分为：关系型数据库和非关系型数据库
+              关系型：mysql oracle sqlserver等
+              非关系型： redis,memcache,mogodb,hadoop等
+
+21、简单介绍一下关系数据库三范式？
+
+       范式就是规范 ,就是关系型数据库在设计表时，要遵循的三个规范。
+       要想满足第二范式必须先满足第一范式，要满足第三范式必须先满足第二范式。
+
+       第一范式（1NF）是指数据库表的每一列都是不可分割的基本数据项，同一列中不能有多个值，即实体中的某个       属性不能有多个值或者不能有重复的属性。列数据的不可分割
+
+       二范式（2NF）要求数据库表中的每个行必须可以被唯一地区分。为实现区分通常需要为表加上一个列，以存储各个实例的唯一标识。(主键)
+
+       满足第三范式（3NF）必须先满足第二范式（2NF）。简而言之，第三范式（3NF）要求一个数据库表中不包含已在其它表中已包含的非主关键字信息。(外键)
+
+           反三范式,有的时候为了效率，可以设置重复或者可以推导出的字段 .
+           订单（总价）和订单项（单价）
+
+22、事务四个基本特征或 ACID 特性。
+
+   事务是并发控制的单位，是用户定义的一个操作序列。这些操作要么都做，要么都不做，是一个不可分割的工作单位。
+
+   （1）原子性(Atomicity）：一个事务必须被视为一个不可分割的最小工作单元，整个事务中的所有操作要么全部提交成功，要么全部失败回滚，对于一个事务来说，不可以只执行其中的一部分操作。
+
+   （2）一致性（Consistency）：数据库总是从一个一致性的状态转到另一个一致性的状态。
+
+   拿转账来说，假设用户A和用户B两者的钱加起来一共是5000，那么不管A和B之间如何转账，转几次账，事务结束后两个用户的钱加起来应该还得是5000，这就是事务一致性。
+
+   （3）隔离性（Isolation）：通常来说，一个事务所做的修改在最终提交之前，对其他事务是不可见的。
+
+   （4）持久性（Durability）：一旦事务提交，则其所做的修改就会永久的保存到数据库中。不会因为系统故障等情况而丢失所做的修改。
+
+--事务的隔离级别:
+Mysql默认的事务隔离级别是可重复读(Repeatable Read)
+讲讲mysql有几个事务隔离级别？”
+你：“读未提交，读已提交，可重复读，串行化四个！默认是可重复读”
+
+
+三、Mysql的四种隔离级别
+
+SQL标准定义了4类隔离级别，包括了一些具体规则，用来限定事务内外的哪些改变是可见的，哪些是不可见的。低级别的隔离级一般支持更高的并发处理，并拥有更低的系统开销。
+
+Read Uncommitted（读取未提交内容）
+
+在该隔离级别，所有事务都可以看到其他未提交事务的执行结果。本隔离级别很少用于实际应用，因为它的性能也不比其他级别好多少。读取未提交的数据，也被称之为脏读（Dirty Read）。
+
+Read Committed（读取提交内容）
+
+这是大多数数据库系统的默认隔离级别（但不是MySQL默认的）。它满足了隔离的简单定义：一个事务只能看见已经提交事务所做的改变。这种隔离级别 也支持所谓的不可重复读（Nonrepeatable Read），因为同一事务的其他实例在该实例处理其间可能会有新的commit，所以同一select可能返回不同结果。
+
+Repeatable Read（可重读）
+
+这是MySQL的默认事务隔离级别，它确保同一事务的多个实例在并发读取数据时，会看到同样的数据行。不过理论上，这会导致另一个棘手的问题：幻读 （Phantom Read）。简单的说，幻读指当用户读取某一范围的数据行时，另一个事务又在该范围内插入了新行，当用户再读取该范围的数据行时，会发现有新的“幻影” 行。InnoDB和Falcon存储引擎通过多版本并发控制（MVCC，Multiversion Concurrency Control）机制解决了该问题。
+
+Serializable（可串行化）
+
+这是最高的隔离级别，它通过强制事务排序，使之不可能相互冲突，从而解决幻读问题。简言之，它是在每个读的数据行上加上共享锁。在这个级别，可能导致大量的超时现象和锁竞争。
+
+这四种隔离级别采取不同的锁类型来实现，若读取的是同一个数据的话，就容易发生问题。例如：
+
+脏读(Drity Read)：某个事务已更新一份数据，另一个事务在此时读取了同一份数据，由于某些原因，前一个RollBack了操作，则后一个事务所读取的数据就会是不正确的。
+
+不可重复读(Non-repeatable read):在一个事务的两次查询之中数据不一致，这可能是两次查询过程中间插入了一个事务更新的原有的数据。
+
+幻读(Phantom Read):在一个事务的两次查询中数据笔数不一致，例如有一个事务查询了几列(Row)数据，而另一个事务却在此时插入了新的几列数据，先前的事务在接下来的查询中，就会发现有几列数据是它先前所没有的。
+
+
+
+
+
+
+
+
+23、
+   为什么需要最大连接数？特定服务器上面的数据库只能支持一定数目同时连接，这时候我们一般都会设置最大连接数  （最多同时服务多少连接）。在数据库安装时都会有一个默认的最大连接数为 100
+
+24、简单说一下你对jdbc的理解？
+
+   Java database connection java数据库连接 .数据库管理系统 (mysql oracle等)是很多，每个数据库管理系统支持的命令是不一样的。
+
+   Java只定义接口，让数据库厂商自己实现接口，对于我们者而言。只需要导入对应厂商开发的实现即可。然后以接口方式进行调用 .(mysql + mysql驱动（实现） +jdbc)
+
+25、数据库连接池作用
+
+   1、限定数据库的个数，不会导致由于数据库连接过多导致系统运行缓慢或崩溃
+   2、数据库连接不需要每次都去创建或销毁，节约了资源
+   3、数据库连接不需要每次都去创建，响应时间更快。
+
+
+26、   MVC全名是Model View Controller，是模型 (model)－视图(view)－控制器 (controller)的缩写，一种软件设计典范，用一种业务逻辑、数据、界面显示分离的方法组织代码，将业务逻辑聚集到一个部件里面，在改进和个性化定制界面及用户交互的同时，不需要重新编写业务逻辑。
+
+    最简单的、最经典就是 Jsp(view) +Servlet(controller) + JavaBean(model)
+
+  1,当控制器收到来自用户的请求
+  2,控制器调用 JavaBean完成业务
+  3,完成业务后通过控制器跳转 JSP页面的方式给用户反馈信息
+  4,Jsp个 用户做出响应。
+    5,  控制器都是核心
+
+27、     什么是 MVC框架？
+        是为了解决传统MVC模式(Jsp + Servlet + JavaBean)的一些问题 而出现的框架。
+
+      传统MVC模式问题
+      所有的 Servlet和Servlet映射都要配置在 web.xml中，如果项目太大， web.xml就太庞大，并且不能实现模块化管理。
+      Servlet的主要功能就是接受参数 、调用逻辑 、跳转页面 ，比如像其他字符编码、文件上传等功能也要写在 Servlet中，不能让 Servlet主要功能而需要做处理一下特例。
+      3、接受参数比较麻烦 (String name = request.getParameter(“name”),User user=new User user.setName(name))，不能通过 model接收，只能单个接收，接收完成后转换封装 model.
+      4、跳转页面方式比较单一 (forword,redirect),并且当我的页面名称发生改变时需要修改 Servlet源代码 .
+
+      现在比较常用的 MVC框架有：
+         struts
+         webwork
+         Struts2
+         Spring MVC
+
+
+28、      简单讲一下struts2的执行流程？
+
+          Struts2的原理 ?
+
+    一个请求在 Struts2框架中的处理大概分为以下几个步骤：
+    1、客户端浏览器发送请求
+    2、这个请求经过一系列的过滤器（ Filter）（这些过滤器中有一个叫做 ActionContextCleanUp的可选过滤器，这个过滤器对于 Struts2和其他框架的集成很有帮助，例如： SiteMesh Plugin）；
+    3、接着 FilterDispatcher(StrutsPrepareAndExecuteFilter )被调用， FilterDispatcher
+    (StrutsPrepareAndExecuteFilter) 询问ActionMapper来决定这个请求是否需要调用某个 Action；
+    如果ActionMapper决定需要调用某个 Action，FilterDispatcher
+        (StrutsPrepareAndExecuteFilter)把请求的处理交给 ActionProxy；
+    5、ActionProxy通过Configuration Manager询问框架的配置文件，找到需要调用的 Action类；
+    6、ActionProxy创建一个 ActionInvocation的实例。
+    7、ActionInvocation实例使用命名模式来调用，在调用 Action的过程前后，涉及到相关拦截器（ Intercepter）的调用。
+    8、一旦 Action执行完毕， ActionInvocation负责根据 struts.xml中的配置找到对应的返回结果。返回结果通常是（但不总是，也可能是另外的一个 Action链）一个需要被表示的 JSP或者FreeMarker的模版。在表示的过程中可以使用 Struts2框架中继承的标签。在这个过程中需要涉及到 ActionMapper。
+
+    面试：
+    浏览器发送请求，经过一系列的过滤器后，到达核心过滤器 (StrutsPrepareAndExecuteFilter).
+    StrutsPrepareAndExecuteFilter 通过ActionMapper判断当前的请求是否需要某个 Action处理,如果不需要，则走原来的流程。如果需要则把请求交给 ActionProxy来处理
+    ActionProxy通过Configuration Manager询问框架的配置文件 (Struts.xml)，找到需要调用的 Action类；
+    创建一个 ActionInvocation实例，来调用 Action的对应方法来获取结果集的 name,在调用前后会执行相关拦截器。
+    通过结果集的 Name知道对应的结果集来对浏览器进行响应。
+
+    拦截、判断、寻找、执行、响应
+
+
+
+29,  Struts2中的拦截器，你都用它干什么？
+
+      java 里的拦截器是动态拦截 Action调用的对象。它提供了一种机制可以使开发者可以定义在一个action执行的前后执行的代码， 也可以在一个 action执行前阻止其执行，同时也提供了一种可以提取 action中可重用部分的方式。
+              在AOP（Aspect-Oriented Programming）中拦截器用于在某个方法或字段被访问之前，进行拦截然后在之前或之后加入某些操作。
+
+    面试：
+        struts2中的的功能（参数处理、文件上传、字符编码等）都是通过系统拦截器实现的。
+    如果业务需要，当然我们也可以自定义拦截器,进行可插拔配置，在执行Action的方法前后、加入相关逻辑完成业务。
+    使用场景：
+    用户登录判断，在执行 Action的前面判断是否已经登录，如果没有登录的跳转到登录页面。
+    用户权限判断，在执行 Action的前面判断是否具有，如果没有权限就给出提示信息。
+    操作日志 ......
+
+
+30,  简单讲一下SpringMVC的执行流程？
+
+
+       1. 用户向服务器发送请求，请求被Spring 前端控制Servelt DispatcherServlet捕获；
+       2. DispatcherServlet对请求URL进行解析，得到请求资源标识符（URI）。然后根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），最后以HandlerExecutionChain对象的形式返回；
+       3. DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter 。（附注：如果成功获得HandlerAdapter后，此时将开始执行拦截器的preHandler(...)方法 ）
+       4.  提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller) 。在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作：
+            HttpMessageConveter：将请求消息（如Json、xml等数据）转换成一个对象，将对象转换为指定的响应信息
+            数据转换 ：对请求消息进行数据转换。如String转换成Integer、Double等
+            数据根式化 ：对请求消息进行数据格式化。如将字符串转换成格式化数字或格式化日期等
+            数据验证 ：验证数据的有效性（长度、格式等），验证结果存储到BindingResult或Error中
+            5.  Handler执行完成后，向DispatcherServlet 返回一个ModelAndView对象；
+            6.  根据返回的ModelAndView，选择一个适合的ViewResolver（必须是已经注册到Spring容器中的ViewResolver)返回给DispatcherServlet ；
+            7. ViewResolver 结合Model和View，来渲染视图
+            8. 将渲染结果返回给客户端。
+
+     面试：
+
+     用户向服务器发送请求 ，请求被Spring 前端控制Servelt DispatcherServlet捕获(捕获)
+     2、  DispatcherServlet对请求 URL进行解析，得到请求资源标识符（URI）。然后根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象 （包括Handler对象以及 Handler对象对应的拦截器），最后以 HandlerExecutionChain对象的形式返回； (查找handler)
+     3、  DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter 。 提取Request中的模型数据，填充Handler入参 ，开始执行Handler（ Controller), Handler执行完成后，向 DispatcherServlet 返回一个ModelAndView对象(执行handler)
+     4、  DispatcherServlet 根据返回的ModelAndView，选择一个适合的ViewResolver（必须是已经注册到Spring容器中的 ViewResolver) (选择ViewResolve r)
+     5、  通过ViewResolver 结合Model和View，来渲染视图 ,DispatcherServlet 将渲染结果返回给客户端。（渲染返回 ）
+
+     快速记忆技巧：
+     核心控制器捕获请求、查找Handler、执行Handler、选择ViewResolver,通过ViewResolver渲染视图并返回
+
+
+31,  说一下struts2和springMVC有什么不同？
+
+
+     目前企业中使用SpringMvc的比例已经远远超过Struts2,那么两者到底有什么区别，是很多初学者比较关注的问题，下面我们就来对 SpringMvc和Struts2进行各方面的比较 :
+
+     1. 核心控制器 （前端控制器、预处理控制器）：对于使用过 mvc框架的人来说这个词应该不会陌生，核心控制器的主要用途是处理所有的请求 ，然后对那些特殊的请求  （控制器）统一的进行处理 (字符编码、文件上传、参数接受、异常处理等等 ),spring mvc核心控制器是Servlet，而Struts2是Filter。
+
+     2.控制器实例： Spring Mvc会比Struts快一些（理论上）。 Spring Mvc是基于方法设计 ，而Sturts是基于对象 ，每次发一次请求都会实例一个 action，每个 action都会被注入  属性，而 Spring更像Servlet一样，只有一个实例，每次请求执行对应的方法即可 (注意：由于是单例实例，所以应当避免全局变量的修改，这样会产生线程安全问题 )。
+
+     3. 管理方式：大部分的公司的核心架构中，就会使用到spring,而spring mvc又是spring中的一个模块，所以spring对于spring mvc的控制器管理更加简单方便， 而且提供了全注解方式进行管理，各种功能的注解都比较全面，使用简单，而 struts2需要采用 XML很多的配置参数来管理（虽然也可以采用注解，但是几乎没有公司那样使用）。
+
+     4.参数传递：Struts2中自身提供多种参数接受，其实都是通过（ValueStack）进行传递和赋值，而SpringMvc是通过方法的参数进行接收。
+
+     5.学习难度： Struts更加很多新的技术点，比如拦截器、值栈及 OGNL表达式，学习成本较高， springmvc 比较简单，很较少的时间都能上手。
+
+     6.intercepter 的实现机制：struts有以自己的interceptor机制，spring mvc用的是独立的AOP方式。这样导致 struts的配置文件量还是比 spring mvc大，虽然 struts的配置能继承，所以我觉得论使用上来讲， spring mvc使用更加简洁，开发效率 Spring MVC确实比 struts2高。spring mvc是方法级别的拦截，一个方法对应一个 request上下文，而方法同时又跟一个 url对应，所以说从架构本身上 spring mvc就容易实现 restful url。struts2是类级别的拦截，一个类对应一个 request上下文；实现 restful url要费劲，因为 struts2 action的一个方法可以对应一个 url；而其类属性却被所有方法共享，这也就无法用注解或其他方式标识其所属方法了。 spring3 mvc的方法之间基本上独立的，独享 request response数据，请求数据通过参数获取，处理结果通过 ModelMap交回给框架方法之间不共享变量，而 struts2搞的就比较乱，虽然方法之间  也是独立的，但其所有 Action变量是共享的，这不会影响程序运行，却给我们编码，读程序时带来麻烦。
+
+     spring mvc处理ajax请求,直接通过返回数据，方法中使用注解@ResponseBody，spring mvc自动帮我们对象转换为JSON数据。而struts2是通过插件的方式进行处理
+
+     在SpringMVC流行起来之前，Struts2在MVC框架中占核心地位，随着SpringMVC的出现，SpringMVC慢慢的取代struts2,但是很多企业都是原来搭建的框架，使用Struts2较多。
+
+32,  说一下Spring中的两大核心？
+
+  Spring是什么？
+    Spring是J2EE应用程序框架，是轻量级的Ioc和Aop的容器框架(相对重量级的EJB),主要针对 JavaBean的生命周期进行管理的轻量级容器，可以单独使用，也可以和Struts框架，ibatis框架等组合使用。
+
+
+    1，Ioc(Inversion of Control)或DI(Dependency Injection)Ioc控制权反转
+       核心原理:就是配置文件+反射(工厂也可以)+容器(map)
+
+    2, AOP面向切面编程
+       核心原理: 使用动态代理的设计模式在执行方法前后或出现异常做加入相关逻辑
+
+ 我们主要使用Aop来做：
+
+     1，事务处理
+     2，权限判断
+     3，日志
+
+33，   AOP是什么？你都拿它做什么？
+
+       AOP:面向切面编程
+             核心原理 ：使用动态代理 的设计模式在执行方法前后或出现异常做加入相关逻辑 。
+             我们主要使用   AOP来做：
+             1、事务处理   执行方法前，开启事务、执行完成后关闭事务、出现异常后回滚事务
+             2、权限判断   在执行方法前，判断是否具有权限
+             3、日志      在执行前进行日志处理
+
+
+34，讲一下Spring的事务传播特性
+
+    多个事务存在是怎么处理的策略
+
+
+    1. PROPAGATION_REQUIRED: 如果存在一个事务，则支持当前事务。如果没有事务则开启
+    2. PROPAGATION_SUPPORTS: 如果存在一个事务，支持当前事务。如果没有事务，则非事务的执行
+    3. PROPAGATION_MANDATORY: 如果已经存在一个事务，支持当前事务。如果没有一个活动的事务，则抛出异常。
+    4. PROPAGATION_REQUIRES_NEW: 总是开启一个新的事务。如果一个事务已经存在，则将这个存在的事务挂起。
+    5. PROPAGATION_NOT_SUPPORTED: 总是非事务地执行，并挂起任何存在的事务。
+    6. PROPAGATION_NEVER: 总是非事务地执行，如果存在一个活动事务，则抛出异常
+    7. PROPAGATION_NESTED：如果一个活动的事务存在，则运行在一个嵌套的事务中. 如果没有活动事务, 则按TransactionDefinition.PROPAGATION_REQUIRED 属性执行
+
+
+    Propagation
+    Required 需要        如果存在一个事务，则支持当前事务。如果没有事务则开启
+    Required_new          总是开启一个新的事务。如果一个事务已经存在，则将这个存在的事务挂起。
+    Supports 支持        如果存在一个事务，支持当前事务。如果没有事务，则非事务的执行
+    Not_support           总是非事务地执行，并挂起任何存在的事务。
+    Mandatory 必要的      如果已经存在一个事务，支持当前事务。如果没有一个活动的事务，则抛出异常。
+    Never    绝不         总是非事务地执行，如果存在一个活动事务，则抛出异常
+    Nested   嵌套的        如果有就嵌套、没有就开启事务
+
+
+35，  Spring事务的隔离级别
+
+     1. ISOLATION_DEFAULT： 这是一个PlatfromTransactionManager默认的隔离级别，使用数据库默认的事务隔离级别.
+
+     另外四个与JDBC的隔离级别相对应
+     2. ISOLATION_READ_UNCOMMITTED：这是事务最低的隔离级别，它充许令外一个事务可以看到这个事务未提交的数据。
+           这种隔离级别会产生脏读，不可重复读和幻像读。
+     3. ISOLATION_READ_COMMITTED：保证一个事务修改的数据提交后才能被另外一个事务读取。另外一个事务不能读取该事务未提交的数据
+     4. ISOLATION_REPEATABLE_READ：这种事务隔离级别可以防止脏读，不可重复读。但是可能出现幻像读。
+           它除了保证一个事务不能读取另一个事务未提交的数据外，还保证了避免下面的情况产生(不可重复读)。
+     5. ISOLATION_SERIALIZABLE 这是花费最高代价但是最可靠的事务隔离级别。事务被处理为顺序执行。
+     除了防止脏读，不可重复读外，还避免了幻像读。
+
+     其中的一些概念的说明：
+       脏读: 指当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，这时，另外一个事务也访问这个数据，然后使用了这个数据。因为这个数据是还没有提交的数据，那么另外一个事务读到的这个数据是脏数据，依据脏数据所做的操作可能是不正确的。
+     不可重复读:  指在一个事务内，多次读同一数据。在这个事务还没有结束时，另外一个事务也访问该同一数据。 那么，在第一个事务中的两次读数据之间，由于第二个事务的修改，那么第一个事务两次读到的数据可能是不一样的。这样就发生了在一个事务内两次读到的数据是不一样的，因此称为是不可重复读。
+      幻觉读:  指当事务不是独立执行时发生的一种现象，例如第一个事务对一个表中的数据进行了修改，这种修改涉及到表中的全部数据行。同时，第二个事务也修改这个表中的数据，这种修改是向表中插入一行新数据。那么，以后就会发生操作第一个事务的用户发现表中还有没有修改的数据行，就好象发生了幻觉一样。
+
+
+36， 什么是ORM?
+
+ 对象关系映射（Object Relational Mapping，简称 ORM）模式是一种为了解决面向对象 与关系数据库存在的互不匹配的现象的技术 。简单的说， ORM是通过使用描述对象和数据库之间映射的元数据，将程序中的对象自动持久化到关系数据库中。那么，到底如何实现持久化呢？一种简单的方案是采用硬编码方式(jdbc操作sql方式)，为每一种可能的数据库访问操作提供单独的方法。
+这种方案存在以下不足：
+    1.持久化层缺乏弹性。一旦出现业务需求的变更，就必须修改持久化层的接口
+    2.持久化层同时与域模型与关系数据库模型绑定，不管域模型还是关系数据库模型发生变化，都要修改持久化曾的相关程序代码，增加了软件的维护难度。
+
+   ORM提供了实现持久化层的另一种模式 ，它采用映射元数据来描述对象关系的映射，使得 ORM中间件能在任何一个应用的业务逻辑层和数据库层之间充当桥梁。
+   Java典型的ORM框架有:Hibernate,ibatis(mybatis),speedframework。
+   ORM的方法论基于三个核心原则：
+　　   简单：以最基本的形式建模数据。
+　　   传达性：数据库结构被任何人都能理解的语言文档化。
+　　   精确性：基于数据模型创建正确标准化了的结构。
+
+
+   对象关系映射（Object Relational Mapping，简称 ORM）模式是一种为了解决面向对象 与关系数据库存在的互不匹配的现象的技术 。可以简单的方案是采用硬编码方式(jdbc操作sql方式)，为每一种可能的数据库访问操作提供单独的方法。这种方法存在很多缺陷，使用
+ 使用ORM框架(为了解决解决面向对象 与关系数据库存在的互不匹配的现象的框架)来解决 .
+
+   Hibernate,ibatis(mybatis),
+
+
+37，  iBatis(mybatis)与Hibernate有什么不同?
+
+   相同点：
+      都是java中orm框架、屏蔽 jdbc api的底层访问细节，使用我们不用与 jdbc api打交道，就可以完成对数据库的持久化操作 。jdbc api编程流程固定，还将 sql语句与 java代码混杂在了一起，经常需要拼凑 sql语句，细节很繁琐。
+       ibatis的好处：屏蔽 jdbc api的底层访问细节；将 sql语句与 java代码进行分离 ;提供了将结果集自动封装称为实体对象和对象的集合的功能 .queryForList返回对象集合，用 queryForObject返回单个对象；提供了自动将实体对象的属性传递给 sql语句的参数。
+
+      Hibername的好处： Hibernate是一个全自动的 orm映射工具，它可以自动生成 sql语句，并执行并返回 java结果。
+
+   不同点：
+      1、hibernate要比ibatis功能强大很多。因为 hibernate自动生成 sql语句。
+      2、ibatis需要我们自己在 xml配置文件中写 sql语句， hibernate我们无法直接控制该语句，我们就无法去写特定的高效率的 sql。对于一些不太复杂的 sql查询， hibernate可以很好帮我们完成，但是，对于特别复杂的查询， hibernate就很难适应了，这时候用 ibatis就是不错的选择，因为 ibatis还是由我们自己写 sql语句。
+     ibatis可以出来复杂语句，而hibernate不能。
+      3、ibatis要比hibernate简单的多。 ibatis是面向 sql的，不同考虑对象间一些复杂的映射关系。
+
+
+38，   Hibernate映射对象的状态
+
+   临时状态 /瞬时状态 (transient)：刚刚用 new语句创建，没有被持久化
+             不处于session中(没有使用 session的方法去操作临时对象 )。该对象成为临时对象
+
+   持久化状态 /托管状态 (persistent)：已经被持久化，加入到 session的缓存中。 session是没有关闭该状态的对象为持久化对象 。
+
+   游离状态 /脱管状态 (detached)：已经被持久化，但不处于 session中。
+             该状态的对象为游离对象 。
+
+   删除状态 (removed)：对象有关联的 ID，并且在 Session管理下，但是已经被计划 (事务提交的时候 ,commit())删除。如果没有事务就不能删除
+
+
+39，  介绍一下Hibernate的缓存?
+
+
+     一、why（为什么要用 Hibernate缓存？）
+
+     Hibernate是一个持久层框架，经常访问物理数据库。
+
+     为了降低应用程序对物理数据源访问的频次，从而提高应用程序的运行性能。
+
+     缓存内的数据是对物理数据源中的数据的复制，应用程序在运行时从缓存读写数据，在特定的时刻或事件会同步缓存和物理数据源的数据。
+
+     为了提供访问速度，把磁盘或数据库访问变成内存访问。
+
+
+
+     二、what（Hibernate缓存原理是怎样的？）
+     Hibernate缓存包括两大类：Hibernate一级缓存 和Hibernate二级缓存。
+
+     1.Hibernate一级缓存又称为“Session的缓存”。
+
+     Session缓存内置不能被卸载 ，Session的缓存是事务范围的缓存 （Session对象的生命周期通常对应一个数据库事务或者一个应用事务）。
+
+     一级缓存中，持久化类的每个实例都具有唯一的 OID。
+
+
+     2.Hibernate二级缓存又称为“SessionFactory的缓存”。
+
+     由于SessionFactory对象的生命周期和应用程序的整个过程对应， 因此Hibernate二级缓存是进程范围或者集群范围的缓存 ，有可能出现并发问题，因此需要采用适当的并发访问策略，该策略为被缓存的数据提供了事务隔离级别。
+
+     第二级缓存是可选的，是一个可配置的插件 ，默认下SessionFactory不会启用这个插件。
+
+     Hibernate提供了 org.hibernate.cache.CacheProvider接口,它充当缓存插件与 Hibernate之间的适配器。
+
+
+     面试：
+        Hibernate中的缓存分一级缓存和二级缓存。
+        一级缓存就是 Session级别的缓存，在事务范围内有效，是内置的，不能被卸载。二级缓存是 SesionFactory级别的缓存，从应用启动到应用结束有效。是可选的，默认没有二级缓存，需要手动开启。
+      保存数据库后，在内存中保存一份，如果更新了数据库就要同步更新。
+      什么样的数据适合存放到第二级缓存中？  　　
+     很少被修改的数据  　帖子的最后回复时间　
+     经常被查询的数据    电商的地点
+     2) 不是很重要的数据，允许出现偶尔并发的数据  　　
+     3) 不会被并发访问的数据  　　
+     4) 常量数据
+     扩展：hibernate的二级缓存默认是不支持分布式缓存的。使用memcahe,redis等中央缓存来代替二级缓存。 　　
+
+
+40，简单讲一下webservice使用的场景？
+
+   webservice是一个SOA（面向服务的编程）的架构，它是不依赖于语言，不依赖于平台，可以实现不同的语言间的相互调用，通过Internet进行基于 Http协议的网络应用间的交互。
+
+   异构系统(不同语言 )的整合
+   不同客户端的整合  浏览器、手机端 (android,ios.塞班)、微信单、 PC端等终端来访问
+   graphic
+   实实在在的列子：
+           天气预报：可以通过实现 webservice客户端调用远程天气服务实现的。
+           单点登录：一个服务是所有系统的登录
+
+41，简单介绍一下activiti?
+
+     Activiti是一个业务流程管理(BPM)和工作流系统，适用于开发人员和系统管理员。其核心是超快速，稳定的BPMN2流程引擎。它易于与 Spring集成使用。
+
+   主要要在OA中，把线下流程放到线上。把现实生活中一些流程固话定义到系统中，然后通过输入表单数据完成业务。
+
+   他可用在OA系统的流程管理中：
+   请假流程小于三天，一级主管审批，大于三天二级才能审批。
+   报销流程 1000 2000 3000>....
+
+
+
+
+
+
+

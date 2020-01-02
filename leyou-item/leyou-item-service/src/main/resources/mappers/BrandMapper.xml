@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--配置接口dao的全限定类名-->
+<mapper namespace="com.leyou.mapper.BrandMapper">
+
+    <!--往商品和品牌的中间表插入数据-->
+    <insert id="addBrandCategory">
+        insert into tb_category_brand (category_id,brand_id)
+        <foreach collection="cids" item="id" open="values" separator=",">
+            (#{id},#{bid})
+        </foreach>
+    </insert>
+
+    <!--根据品牌Id删除中间表数据-->
+    <delete id="deleteBrandCategoryByBid">
+    delete  from tb_category_brand where brand_id=#{id}
+    </delete>
+
+    <!--    根据品牌Id查询是否存在中间表信息-->
+    <select id="findBrandAndCategory" resultType="java.lang.Integer">
+        select count(*) from tb_category_brand where brand_id=#{id}
+    </select>
+    <!--根据categoryId查询品牌，回显-->
+    <select id="findBrandByCategoryId" resultType="com.leyou.pojo.Brand">
+        SELECT
+	tb.id,
+	tb.`name`,
+	tb.letter,
+	tb.image,
+	tb.create_time,
+	tb.update_time
+    FROM
+	tb_brand tb,
+	tb_category_brand tcb
+    WHERE
+	tb.id = tcb.brand_id
+	AND tcb.category_id = #{cid}
+    </select>
+</mapper>

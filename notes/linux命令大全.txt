@@ -1,0 +1,222 @@
+/       根目录。一般不含任何文件，除了可能的标准的系统引导映象，通常叫/vmlinuz 。
+所有其他文件在根文件系统的子目录中。
+/bin    一般用户使用的命令
+/boot   放置内核及LILO、GRUB等导引程序(bootloader)的文件，用于启动。
+/dev    硬盘，分区，键盘，鼠标，USB，tty等所有的设备文件都放在这个目录。
+/etc    系统的所有配置文件都存放在此目录中。
+/home   用户空间，所有的用户都是用此空间。比如我们购买的vps装的kloxo或者是webmin面板默认网站文件数据都存放在此目录。
+/lib    共享连接库，如C库和C编译器等等。
+/media  挂接CD-ROM等设备的目录
+/mnt    移动设备文件系统的挂点
+/opt    存放后来追加的用户应用程序
+/proc   proc文件系统是一个假的文件系统。
+它不存在在磁盘某个磁盘上。而是由核心在内存中产生。
+用于提供关于系统的信息(originally aboutprocesses, hence the name)。
+下面说明一些最重要的文件和目录。 
+/proc文件系统在procman页中有更详细的说明。
+/root    root用户的用户目录。
+/sbin   存放系统管理所需要的命令。类似/bin ，但不给普通用户使用
+/tmp    临时文件目录，重新启动时被清除
+/usr/   usr文件系统经常很大，因为所有程序安装在这里。 
+/usr 里的所有文件一般来自Linuxdistribution；
+/usr的有些子目录在下面列出(一些不太重要的目录省略了，更多信息见FHS)。    
+/usr/bin 用户和管理员的标准命令。有些命令在/bin 或/usr/local/bin 中。    
+/usr/include c/c++等各种开发语言环境的标准include文件    
+/usr/lib 应用程序及程序包的连接库    
+/usr/local 系统管理员安装的应用程序目录，本地安装的程序和其他东西在
+/usr/local下。这样可能在升级新版系统或新distribution时无须重新安装全部程序。   
+ /usr/local/share 系统管理员安装的共享文件    
+/usr/sbin 用户和管理员的标准命令   
+ /usr/share 存放使用手册等共享文件的目录   
+ /usr/share/dict 存放词表的目录（选项）   
+ /usr/share/man 系统使用手册    
+/usr/share/misc 一般数据    
+/usr/share/sgmlSGML 数据（选项）   
+ /usr/share/xmlXML 数据（选项）
+/var/   var包括系统一般运行时要改变的数据。
+如存放应用程序数据和日志记录的目录。每个系统是特定的，即不通过网络与其他计算机共享。 
+/var/cache 应用程序缓存目录
+
+注意：本地安装的程序和其他东西在/usr/local。
+-------------------------------------------------命令------------------------------------------
+基本命令:
+
+关机:
+               shutdown  -h now   立刻关机     
+               shutdown  -h 5     5分钟后关机
+               poweroff             立刻关机
+
+重启:       shutdown -r  now   立刻重启
+              shutdown  -r    5     5分钟后重启    r指的是restart意思
+              reboot                   立刻重启
+
+
+如果记不住命令可以使用help命令查看帮助
+ --help 命令  
+shutdown --help：  
+ifconfig  --help：查看网卡信息 
+man命令（命令说明书）   
+man shutdown  注意：man shutdown打开命令说明书之后，使用按键q退出
+
+---cd命令
+
+cd /		切换到根目录
+cd /usr		切换到根目录下的usr目录
+cd ../		切换到上一级目录 或者  cd ..
+cd ~		切换到home目录
+cd -		切换到上次访问的目录
+
+---ls[-al]命令
+
+ls            查看当前目录下的所有目录和文件
+ls -a        查看当前目录下的所有目录和文件（包括隐藏的文件）
+ls -l 或 ll     列表查看当前目录下的所有目录和文件（列表查看，显示更多信息）
+ls /dir         查看指定目录下的所有目录和文件   如：ls /usr
+
+---mkdir命令创建目录
+mkdir   aaa         在当前目录下创建一个名为aaa的目录
+mkdir  -p   /usr/aaa    在指定目录下创建一个名为aaa的目录 多级目录
+
+-----命令：rm [-rf] 目录
+
+删除文件：
+rm 文件       删除当前目录下的文件
+rm -f 文件    删除当前目录的的文件（不询问）
+删除目录：
+rm -r aaa   递归删除当前目录下的aaa目录
+rm -rf aaa  递归删除当前目录下的aaa目录（不询问）
+全部删除：
+rm -rf *    将当前目录下的所有目录和文件全部删除
+rm -rf /*   【自杀命令！慎用！慎用！慎用！】将根目录下的所有文件全部删除
+
+---------------目录修改[改] mv 和cp
+一、重命名目录    
+命令：mv 当前目录  新目录    例如：mv aaa bbb   将目录aaa改为bbb    
+注意：mv的语法不仅可以对目录进行重命名而且也可以对各种文件，
+压缩包等进行   重命名的操作
+二、剪切目录    
+命令：mv 目录名称 目录的新位置    
+示例：将/usr/tmp目录下的aaa目录剪切到 /usr目录下面 
+ mv      /usr/tmp/aaa       /usr    
+注意：mv语法不仅可以对目录进行剪切操作，对文件和压缩包等都可执行剪切操作
+--TODO2019/11/19/11/13
+三、拷贝目录    
+命令：cp -r 目录名称 目录拷贝的目标位置   -r代表递归    
+示例：将/usr/tmp目录下的aaa目录复制到 /usr目录下面     
+cp    /usr/tmp/aaa      /usr    
+注意：cp命令不仅可以拷贝目录还可以拷贝文件，压缩包等，
+拷贝文件和压缩包时不  用写-r递归    
+
+四, 搜索目录[查]  find
+
+命令：find 目录 参数 文件名称
+示例：find /usr/tmp -name 'a*'    查找/usr/tmp目录下的所有以a开头的目录或文件
+
+----文件操作命令：
+
+touch 文件   
+示例：在当前目录创建一个名为aa.txt的文件     touch  aa.txt
+
+------修改文件vi/vim
+【vi编辑器的3种模式】    
+基本上vi可以分为三种状态，
+分别是
+命令模式（command mode）、
+插入模式（Insert mode）
+和底行模式（last line mode），各模式的功能区分如下：
+1) 命令行模式command mode）      
+控制屏幕光标的移动，字符、字或行的删除，查找，
+移动复制某区段及进入Insert mode下，或者到 last line mode。      
+命令行模式下的常用命令:【1】控制光标移动：↑，↓，j   【2】删除当前行：dd       【3】查找：/字符      
+【4】进入编辑模式：i o a      【5】进入底行模式：:      
+2) 编辑模式（Insert mode）      
+只有在Insert mode下，才可以做文字输入，按「ESC」键可回到命令行模式。      
+编辑模式下常用命令：      
+【1】ESC 退出编辑模式到命令行模式；
+3) 底行模式（last line mode）     
+将文件保存或退出vi，也可以设置编辑环境，如寻找字符串、列出行号……等。     
+底行模式下常用命令:【1】退出编辑 :q  【2】强制退出:q!  3】保存并退出：  :wq
+
+打开文件命令：vi 文件名
+示例：打开当前目录下的aa.txt文件     vi aa.txt 或者 vim aa.txt
+
+------查看文件
+文件的查看命令：cat/more/less/tail
+cat：看最后一屏
+more：百分比显示:回车可以向下一行，空格可以向下一页，q可以退出查看
+less：翻页查看 ,可以使用键盘上的PgUp和PgDn向上	和向下翻页，q结束查看
+tail：指定行数或者动态查看,使用tail -10 查看/etc/sudo.conf文件的后10行，Ctrl+C结束  tail -10 sudo.conf
+
+-----打包和压缩文件
+
+Windows的压缩文件的扩展名  .zip/.rar
+
+
+linux中的打包文件：aa.tar        
+linux中的压缩文件：bb.gz     
+linux中打包并压缩的文件：ab.tar.gz
+
+Linux中的打包文件一般是以.tar结尾的，压缩的命令一般是以.gz结尾的。
+而一般情况下打包和压缩是一起进行的，打包并压缩后的文件的后缀名一般.tar.gz。
+
+命令：tar -zcvf  打包压缩后的文件名 要打包的文件
+其中：z：调用gzip压缩命令进行压缩
+  c：打包文件
+  v：显示运行过程
+  f：指定文件名
+  
+示例：打包并压缩/usr/tmp 下的所有文件 压缩后的压缩包指定名称为xxx.tar
+tar -zcvf ab.tar aa.txt bb.txt 
+或：tar -zcvf ab.tar  *
+
+------解压
+ 命令：tar [-zxvf] 压缩文件    
+其中：x：代表解压示例：将/usr/tmp 下的ab.tar解压到当前目录下
+
+示例：将/usr/tmp 下的ab.tar解压到根目录/usr下
+tar -xvf ab.tar -C /usr------C代表指定解压的位置
+
+命令：pwd     查看当前目录路径
+命令：ps -ef    查看所有正在运行的进程
+
+命令：grep 要搜索的字符串 要搜索的文件
+示例：搜索/etc/sudo.conf文件中包含字符串to的行    grep to /etc/sudo.conf
+
+管道命令
+命令：|   将前一个命令的输出作为本次命令的输入
+示例：查看当前系统中所有的进程中包括system字符串的进程
+	ps -ef | grep system
+
+ifconfig：查看网卡信息
+- 进入网卡配置文件目录：cd    /etc/sysconfig/network-scripts/
+- 修改ifcfg-eth0,ifcfg-eth1
+
+ping：查看与某台机器的连接情况 命令：ping ip
+netstat -an：查看当前系统端口 命令：netstat -an
+搜索指定端口
+命令：netstat -an | grep 8080
+
+rpm -qa|grep java #获取已经安装的java
+--nodeps 不检查依赖性关系 
+rpm -e --nodeps  mysql-libs-5.1.71-1.el6.x86_64      卸载mysql程序              
+erase:英文：擦除
+-------------------
+关闭mysql，因为mysql会占用大量内存:
+
+    service mysql stop
+    chkconfig mysql off
+关闭防火墙：
+    service iptables stop
+    chkconfig iptables off
+
+.新建一个用户leyou
+    useradd leyou
+设置密码：
+    passwd leyou
+
+
+
+
+
+
+

@@ -1,0 +1,44 @@
+第一：只要容易出错的地方，切记一定要写@Slf4j  日志，打印在控制台
+第二：只要是sql ,特别是动态sql,还有就是我们没有设定返回值的sql,一定要加上try catch,抛异常时候尽量根据不同异常抛不同说明，可以自定义
+第三：返回给前端尽量使用DTO结尾，前端需要什么返回什么，不要把多余的数据都返回，减少流量耗损
+     关于第三点补充： 可以使用自定义BeanHelper进行转换
+第四：比如在Aserviceimpl当中，应该使用的是AMapper,如果需要使用到其他Mapper,比如BMapper,这属于跨业务调用，不要直接写BMapper，而是写Bservice ,在Bserviceimpl里面写需要的方法
+     关于第四点补充：如果我们需要的方法不够用，可以拓展通用mapper
+
+
+第五:根据前端发送的请求，根据前端页面，分析，需要什么数据，
+
+eg1:      Request URL:  http：//api.leyou.com/api/item/brand
+          Request Method: Post
+
+
+         Form Data
+            name:黑马
+            image:
+            cids:76,105
+            letter:H
+
+先分析四个内容：
+
+- 请求方式：POST
+- 请求路径：/brand
+- 请求参数：brand对象的三个属性，可以用BrandDTO接收，外加商品分类的id数组cids
+- 返回值：无
+
+
+eg2:
+
+              Request URL:  http：//api.leyou.com/api/item/category/of/brand/?id=2032
+              Request Method: Post
+
+- 请求方式：Get
+- 请求路径：/category/list/of/brand
+- 请求参数：id，这里的值应该是品牌的id，因为是根据品牌查询分类
+- 返回结果：一个品牌对应多个分类， 应该是分类的集合List<Category>
+
+
+如果是查询页面信息一定要注意，是否需要分页
+
+第五：数据库使用单表，表与表之间的中间表不写，但是要心里有数，我们可以采用以空间换时间的方式，
+比如，A表与B表之间有关联关系，以往我们会使用中间表，但是由于外键会损耗性能，所以我们会采用在AB表内都加上对方的Id字段
+便于查询，这就是以空间换时间

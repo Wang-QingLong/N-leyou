@@ -1,0 +1,17 @@
+地址；https://www.npmjs.com/package/live-server
+
+安装，使用npm命令即可，这里建议全局安装，以后任意位置可用
+npm install -g live-server
+运行时，直接输入命令：
+live-server
+
+意思就是你在某个位置输入npm install -g live-server命令安装了
+你就可以在你电脑的任意位置下访问静态资源
+
+比如我在leyou-portal包下安装了，我可以在某个有图片的位置输入命令live-server命令访问当前
+包下的静态资源
+
+--port=NUMBER - 选择要使用的端口，默认值：PORT env var或8080
+
+eg:
+live-server --port=9002  将当前模块的端口号改为9002

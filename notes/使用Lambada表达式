@@ -1,0 +1,37 @@
+ eg:
+
+ List<SkuDTO> skus = spuDTO.getSku();
+
+ List<Sku> skuList = skus.stream().map(skuDTO -> {
+                skuDTO.setSpuId(spu.getId());
+                return BeanHelper.copyProperties(skuDTO, Sku.class);
+            }).collect(Collectors.toList());
+
+
+ 解析： 首先将 skus以管道流的形式对里面每一个元素进行操作映射，然后在聚合映射成一个list集合
+       stream对于返回值可有可无，forEach没有返回值
+
+
+
+  spuDTOList.forEach(spuDTO -> {
+
+             List<CategoryDTO> categoryDTOS = this.categoryService.queryCategoriesByIds(spuDTO.getCategoryIds());
+
+
+
+             String names = categoryDTOS.stream()
+                     .map(CategoryDTO::getName)
+                     .collect(Collectors.joining("/"));
+
+                     }
+
+ 解析：
+ categoryDTOS.stream()这一步：
+
+ 先将categoryDTOS集合转换成 ：List<CategoryDTO>  ==> Stream<CategoryDTO>
+
+   .map(CategoryDTO::getName)这一步：将Stream<CategoryDTO> 转换成Stream<String> 因为getname，name是String类型
+
+    .collect(Collectors.joining("/"));这一步：
+
+    collect是一个非常强大的整合工具，这一步有一个跳跃的过程，就是在进行 .collect(Collectors.joining("/"));之前先执行了.collect(Collectors.toList()) 转换成List<String> 然后挨个取出==》 elm1,elm2,elm3.. 最后执行的.collect(Collectors.joining("/"));就是在每个元素之间加”/“然后拼接成一个字符串

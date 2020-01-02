@@ -1,0 +1,18 @@
+server:
+  port: 10086
+
+spring:
+  application:
+    name: leyou-Registry  #服务名称 ，会在Eureka中作为服务的Id标识（serviceId）
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    register-with-eureka: true #false为不注册自己
+    fetch-registry: false   #false为不拉取服务
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+  server:
+    enable-self-preservation: false  # 关闭自我保护模式（缺省为打开）
+    eviction-interval-timer-in-ms: 1000 # 剔除无效连接的间隔时间

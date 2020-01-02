@@ -1,0 +1,30 @@
+@ControllerAdvice，
+是Spring3.2提供的新注解,它是一个Controller增强器,可对controller中被
+ * @RequestMapping注解的方法加一些逻辑处理。最常用的就是异常处理,需要配合@ExceptionHandler使用。
+ * 当将异常抛到controller时, 可以对异常进行统一处理, 规定返回的json格式或是跳转到一个错误页面
+
+
+
+
+
+ @ControllerAdvice  //controller中的通知器，只要controller有异常，这个业务（所谓业务就是对该controller，service,dao都有用，但是拦截器没用，因为拦截器还没到controller）就会自动生效，相当于在适配的controller中添加try
+ @Slf4j
+ public class BasicExceptionAdvice {
+
+
+     @ExceptionHandler(RuntimeException.class)    //异常处理器  等价于catch
+     public ResponseEntity<String> handleException(RuntimeException e) {
+           // 我们暂定返回状态码为400， 然后从异常中获取友好提示信息
+          //ResponseEntity中会返回2个值，一个是状态码，另外一个是消息主体
+         return ResponseEntity.status(400).body(e.getMessage());
+}
+
+
+
+
+@ExceptionHandler(RuntimeException.class)：作用在方法上，声明要处理的异常类型，可以有多个，这里指定的是RuntimeException。被声明的方法可以看做是一个SpringMVC的Handler：
+  - 参数是要处理的异常，类型必须要匹配
+  - 返回结果可以是ModelAndView、ResponseEntity等，基本与handler类似
+- 这里等于从新定义了返回结果，我们可以随意指定想要的返回类型。此处使用了String
+
+要想在商品服务中扫描到这个advice，需要将该模块引入到需要用到的模块中去

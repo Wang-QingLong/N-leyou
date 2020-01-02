@@ -1,0 +1,59 @@
+server:
+  port: 10010
+spring:
+  application:
+    name: leyou-gateway
+zuul:
+  prefix: /api
+  routes:
+    leyou-item-service: /item/**
+    leyou-item-upload:  /upload/**
+    search-service:    /search/**
+  ignored-services:    #设置服务路由的忽略
+    - leyou-item-service
+    - leyou-item-upload
+    - search-service
+
+
+#hystrix就是衡量ribbon的尺子，所以时间必须大于ribbon的总和
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000
+ribbon:
+  ConnectTimeout: 500    #ribbon连接超时时长
+  ReadTimeout: 2000       #ribbon读取超时时长
+  MaxAutoRetries: 0       #当前服务重试次数
+  MaxAutoRetriesNextServer: 3   #切换服务重试次数
+  OkToRetryOnAllOperations: false #是否对所有的请求方式都重试，只对get请求重试
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+#跨域
+ly:
+  cors:
+    allowedOrigins:
+      - http://manage.leyou.com
+      - http://www.leyou.com
+    allowCredentials: true
+    allowedHeaders:
+      - "*"
+    allowedMethods:
+      - GET
+      - POST
+      - DELETE
+      - PUT
+      - OPTIONS
+      - HEAD
+    maxAge: 3600
+    filterPath: "/**"

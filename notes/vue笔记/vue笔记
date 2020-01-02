@@ -1,0 +1,17 @@
+vue
+html模板
+	{{}}：插值表达式，声明式渲染，单向，会出现插值闪烁  v-text：把所有的内容当做文本渲染  v-html：识别js html css渲染
+	v-model:双向渲染，在表单元素中使用。
+	v-on:事件名：v-on:click="js表达式或者函数名"  @click @contextMenu   .prevent:禁用默认事件 .enter(13):回车键盘事件
+	钩子函数：初始化（new Vue()） 模板加载 视图渲染 更新 销毁 。 created：加载数据模型
+	v-for: 遍历集合或者对象
+		v-for="(item,index) in items"
+		v-for="(val, key, index) in user"
+
+
+vue实例
+	el: "#app" // vue实例的作用范围
+	data: {数据模型}
+	methods: {定义方法}
+	created(){加载数据}
+

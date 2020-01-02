@@ -1,0 +1,53 @@
+server:
+  port: 8081
+
+spring:
+  application:  #服务名
+    name: leyou-item-service
+  datasource:   #数据库连接池数据
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/heima88?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: hmj050117
+    hikari:
+      max-lifetime: 28830000 # 一个连接的生命时长（毫秒）
+      maximum-pool-size: 9 # 连接池中允许的最大连接数。
+  jackson:
+    default-property-inclusion: non_null   #返回值为null不返回
+
+
+  rabbitmq: #配置rabbitMq的消息
+    host: 192.168.2.128   #虚拟机地址
+    virtual-host: /leyou
+    username: leyou      #登录账户
+    password: leyou
+    template: #关于生产者的配置
+      retry:
+        enabled: true   #允许重试
+        initial-interval: 10000ms  #默认重试间隔
+        max-interval:  80000ms #最大间隔
+        multiplier: 2  #间隔倍数
+    publisher-confirms: true  #发送确认
+logging:  #日志
+  level:
+    com.leyou: debug
+eureka:   #eurekake客户端
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:10086/eureka
+    register-with-eureka: true #false为不注册自己
+    fetch-registry: false   #false为不拉取服务
+  instance:
+    lease-renewal-interval-in-seconds: 5 # 5秒钟发送一次心跳
+    lease-expiration-duration-in-seconds: 10 # 10秒不发送就过期
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true       #驼峰
+  mapper-locations: /mappers/*.xml
+
+#全局修改关键词冲突问题
+mapper:
+  wrap-keyword:  "`{0}`"
+

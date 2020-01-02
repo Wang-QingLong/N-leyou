@@ -1,0 +1,263 @@
+1---创建聚合过程: 版本号写1.0.0不要写1.0
+2---为什么要使用Finchley.SR2版本，因为spring-cloud的1版本有很多的Bug
+
+
+3--创建注册中心模块:
+    引入依赖 :
+             <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+             </dependency>
+
+    开启server服务注解: @EnableEurekaServer
+
+    写配置文件:   详情看配置文件
+
+4--创建网关模块，这里使用zuul网关
+    因为是客户端，网关，所以需要导入2个依赖
+
+            <!--客户端-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-eureka-client </artifactId>
+            </dependency>
+            <!--zuul网关-->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+            </dependency>
+    然后开始开启注解开关，设置配置
+
+
+5---导入需要的后台前端页面
+
+注意 vue组件项目也可以看成一个maven工程，拿过来的时候也需要导依赖
+
+6--需要改变域名，我们可以借助一个工具  SwitchHosts  工具
+7--需要改变端口，我们可以借助nginx(web服务器和反向代理)
+   什么是正向代理？ 就是代理客户端
+   什么是反向代理？ 就是代理服务端
+
+   Web服务器分2类：web应用服务器 如：tomcat resin jetty  能解析jsp,但是并发能力弱
+                 web服务器，如：Apache Nginx lls（window serve里面的服务器，默认80端口） 不能解析jsp,只能处理js,css,html等静态资源
+                           但是服务器的并发能力远高于web应用服务器。
+   Nginx具备网关的必备功能: 反向代理  负载均衡  动态路由  请求过滤
+
+8--启动网关之后就会出现跨域问题，这个时候只需要在网关里面配置一下即可
+
+9--细节，对前台传入的参数要进行健壮性判断
+
+10--拿到一个请求，先判断是什么请求，查询要问自己是否需要分页处理，然后看下前端需要返回什么数据，对应数据库哪一张表，表里面有什么数据，如何获取这些数据，然后建立对应的实体类
+和对应的DTO类，不需要的数据不需要返回，可以在配置里面设置
+  jackson:
+    default-property-inclusion: non_null   #返回值为null不返回
+
+
+    接收请求，分页查询的时候
+    如果某些参数不知道是否需要传，设置非必须
+      @RequestParam(value = "key", required = false)
+    详情更多，查看queryPage方法内部如何实现
+
+新增品牌时，需要用到上传图片，其实就是将图片通过Io流写到某个位置(通常服务器)然后保存该图片地址。
+11  新增品牌--图片上传 我们单独用一个模块
+
+主要核心导入
+ <!--aliyun的对象存储-->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.4.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+直接拉取拷贝upload这个模块就可以使用了
+
+分析请求，来源于Form Data 数据
+
+12--- 修改品牌
+      先根据品牌Id查询分类数据  品牌id和分类id是多对多的关系
+      修改分2步，若存在中间表要先删除中间表数据再建立新的关系
+
+13----删除品牌 先判断是否存在中间表，存在则不能删除，要删除也要先删除中间表
+
+14----商品列表   理清商品之间的关系
+               spu指的是通用属性，比如：商品最上边的标题，商品下面的详情介绍，包装清单
+                                    售后，规则与包装
+               sku指的是具体的属性，比如：商品的具体标题，商品具体图片，
+                                      商品的价格，库存，
+
+
+15--  前台优化
+
+      SEO 搜索引擎优化
+
+    后台的前台使用的是单页面，但是单页面对搜索引擎不怎么支持，所以不用单页面
+
+16--分析前台页面需要什么
+
+     首先分析商品: 商品有标题，有副标题卖点，有价格，有具体的图片，通过点击商品的标题可以进入商品
+     详情页
+
+     所以：  设计表:  先看商品:
+                   表中必须要有SpuId字段，通过SpuId可以进入商品详情页
+                   可以切换不同的图片选中不同的商品，所以要有List<sku> 数据
+                   有商品促销卖点副标题：所以要有subTitle
+                   --
+                   然后看界面上面商品的分类:
+                   所以要有cid1 cid2 cid3
+                   --
+                   左侧分类下面有品牌，网络制式，显示屏尺寸，摄像头像数，价格等
+                   品牌：对应要有品牌Id
+                   网络制式，显示屏尺寸，摄像头等和它对应的规格参数。
+                   可以使用Map<name,value> 封装
+                   价格，因为多个，用list<long> price封装
+                   --
+                   排序方面，有新品，价格等，如果使用新品排序，需要使用到 createTime
+                   --
+                   顶部搜索框，可以输入title标题，可以输入品牌名称 可以输入分类名称
+                   所以这里我们统一用all字段
+                   all(title brandName categoryName)
+
+     上面我们分析了需要的信息
+
+   Goods                          Spu
+   搜索：                 all:(title brandName categoryName)
+   进入商品详情页：                 SpuId
+   商品信息                       List<sku>
+   商品信息里面的商品卖点标题         subTitle
+   商品分类                     cid1 cid2 cid3
+   品牌                            brandId
+   品牌下面的其他规格参数          Map<name,value>
+       价格                     List<Long> price   sku里面包含了
+   根据新品排序                     CreateTime      spu里面有
+
+   我们需要从数据库拿数据然后转换到索引库，不可能说一次性将全部数据导入，千万条压力大
+   所以也就是分批查询spu数据，将Spu数据转换成goods数据
+             list<spu> => list<goods>
+   其实本质就是分页查询，然后使用repository.saveAll(goodlist)插入
+
+   分析我们需要哪些接口，来讲需要的spu数据转化成goods数据
+
+     首先   SPU信息 在sController里面发现我们已经写过 querySpuByPage
+           Sku信息  通过SpuId查询，已经写过  findSkusBySpuId
+           SPu详情  我们需要根据规格参数聚合（generic_spec） 发现已经写了
+           商品分类名称(拼接成all字段)   通过SpuIds查询里面的cids,再通过cids查询分类名称
+                                      在categoryController里面发现没写，我们就需                                       要自己添加一个queryCategoriesByIds
+           需要品牌名称          通过SpuId获取品牌Id，再通过品牌Id查询品牌信息
+                               在brandController里面查看下有没有,发现没有，添加一个
+                               queryBrandById
+           品牌下面的其他规格参数  打开数据库表，发现只有searching为true才能进行规格参数
+                               搜索，再去找有没有写接口，发现写了，findParams，但是不全
+                               我们自己补全即可。
+
+接口写好了我们就需要在search模块里面去调用接口，这个时候我们需要使用到feign
+
+   1,引入启动器
+   2，覆盖默认配置
+   3，在引导类上添加注解@EnableFeignClients
+   4, 在代码中使用feign
+      1,定义ItemFeignClient接口 这里我将接口抽出去了单独放一个模块，以便其他模块使用
+      2，在接口上添加注解@FeignClient("leyou-item-service")
+
+
+ 接口写好了，下一步就是开始批量讲数据库数据导入索引库，所以就需要创建GoodIndexService
+ 在里面写将list<SPU>转换成 list<goods> 过程
+
+ 然后编写接口 SearchController 根据前台传入的数据，编写接收的实体类SearchRequest
+ 然后写编写一个业务类GoodSearchService ,在里面编写我们需要的查询逻辑。
+
+ 接下来，使用静态化技术thymeleaf
+ 单独创建一个模块Page
+
+
+ 如何使用springamqp ,
+
+---- 发送消息方
+
+ 在需要发送消息的地方加上注解
+    @Autowired
+   private AmqpTemplate amqpTemplate;
+
+   然后在方法内部写上方法
+
+    //商品服务负责消息的发出，routingkey不同，所以其实可以把消息发给不同队列
+           this.amqpTemplate.convertAndSend(交换机名字, rouingKey, 需要发送的数据);
+
+ 导入依赖
+
+    <!--Springamqp-->
+         <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-amqp</artifactId>
+         </dependency>
+
+  配置:
+
+
+  rabbitmq: #配置rabbitMq的消息
+    host: 192.168.2.128   #虚拟机地址
+    virtual-host: /leyou
+    username: leyou      #登录账户
+    password: leyou
+    template: #关于生产者的配置
+      retry:
+        enabled: true   #允许重试
+        initial-interval: 10000ms  #默认重试间隔
+        max-interval:  80000ms #最大间隔
+        multiplier: 2  #间隔倍数
+    publisher-confirms: true  #发送确认
+
+---接收消息方
+1,需要写监听方法 比如这里的search
+
+@Component
+public class ItemListener {
+
+    @Autowired
+    private GoodsIndexService goodsIndexService;
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = SEARCH_ITEM_UP, durable = "true"),
+            exchange = @Exchange(
+                    name = ITEM_EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+            key = ITEM_UP_KEY
+    ))
+    public void listenInsert(Long spuId){
+        if(spuId != null){
+            // 新增索引
+            goodsIndexService.createIndex(spuId);
+        }
+    }
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(name = SEARCH_ITEM_DOWN, durable = "true"),
+            exchange = @Exchange(
+                    name = ITEM_EXCHANGE_NAME, type = ExchangeTypes.TOPIC),
+            key = ITEM_DOWN_KEY
+    ))
+    public void listenDelete(Long spuId){
+        if(spuId != null){
+            // 删除
+            goodsIndexService.deleteById(spuId);
+        }
+    }
+}
+
+2,需要导入依赖：
+
+ <!--Springamqp-->
+         <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-amqp</artifactId>
+         </dependency>
+
+3，需要书写配置：
+
+
+  rabbitmq: #配置rabbitMq的消息
+    host: 192.168.2.128   #虚拟机地址
+    virtual-host: /leyou
+    username: leyou      #登录账户
+    password: leyou
+
+消费者的确认机制在内部已经有了，所以不需要写
