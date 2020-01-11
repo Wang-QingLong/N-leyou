@@ -307,7 +307,9 @@
         });
       },
       loadSku(carts) {
+        //未来事件，不知道成功，还是失败，ajax本质就是未来事件，内部执行resolve外部对应执行then，内部执行reject外部执行catch
         return new Promise((resolve, reject) => {
+          //ids是skuId的集合数组
           const ids = carts.map(c => {
             c.saleable = false;
             return c.skuId;
@@ -334,7 +336,7 @@
         // 查询购物车
         this.isLogin().then(() => {
           // 判断本地未登录购物车是否存在，
-          /*const carts = ly.store.get("carts") || [];
+          const carts = ly.store.get("carts") || [];
           if (carts.length > 0) {
             // 如果存在，发到后台，添加到redis，删除本地购物车
             ly.http.post("/cart/list", carts).then(() => {
@@ -348,7 +350,7 @@
           } else {
             // 查询购物车
             this.handleLoginCarts();
-          }*/
+          }
 		  // 查询购物车
 		  this.handleLoginCarts();
         }).catch(() => {
@@ -388,6 +390,7 @@
             this.refreshSelectedCarts();
           }).catch(() => {
             alert("服务器忙");
+            //TODO 强制刷新页面
           })
         }).catch(() => {
           // 未登录

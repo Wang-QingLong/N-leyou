@@ -1,0 +1,347 @@
+Spring 原理:它是一个全面的、企业应用开发一站式的解决方案，
+贯穿表现层、业务层、持久层。
+但是 Spring仍然可以和其他的框架无缝整合。
+
+Spring特点: 轻量级 控制反转 面向切面 容器 框架集合
+
+Spring IOC 原理:
+Spring 通过一个配置文件描述 Bean 及 Bean 之间的依赖关系，利用 Java 语言的反射功能实例化
+Bean 并建立 Bean 之间的依赖关系。 Spring 的 IoC 容器在完成这些底层工作的基础上，还提供
+了 Bean 实例缓存、生命周期管理、 Bean 实例代理、事件发布、资源装载等高级服务。
+
+Spring 容器高层视图
+Spring 启动时读取应用程序提供的 Bean 配置信息，并在 Spring 容器中生成一份相应的 Bean 配
+置注册表，然后根据这张注册表实例化 Bean，装配好 Bean 之间的依赖关系，为上层应用提供准
+备就绪的运行环境。其中 Bean 缓存池为 HashMap 实现
+
+IOC 容器实现 :
+BeanFactory-框架基础设施
+BeanFactory 是 Spring 框架的基础设施，面向 Spring 本身；ApplicationContext 面向使用
+Spring 框架的开发者，几乎所有的应用场合我们都直接使用 ApplicationContext 而非底层
+的 BeanFactory...
+
+
+Spring Bean 作用域:
+
+Spring 3 中为 Bean 定义了 5 中作用域，分别为 singleton（单例）、prototype（原型）、
+request、session 和 global session，5 种作用域说明如下：
+
+-->  singleton：单例模式（多线程下不安全）
+1. singleton：单例模式，Spring IoC 容器中只会存在一个共享的 Bean 实例，无论有多少个
+Bean 引用它，始终指向同一对象。该模式在多线程下是不安全的。Singleton 作用域是
+Spring 中的缺省作用域，也可以显示的将 Bean 定义为 singleton 模式，配置为：
+<bean id="userDao" class="com.ioc.UserDaoImpl" scope="singleton"/>
+
+-->   prototype:原型模式每次使用时创建
+2. prototype:原型模式，每次通过 Spring 容器获取 prototype 定义的 bean 时，容器都将创建
+一个新的 Bean 实例，每个 Bean 实例都有自己的属性和状态，而 singleton 全局只有一个对
+象。根据经验，对有状态的bean使用prototype作用域，而对无状态的bean使用singleton
+作用域。
+
+Request：一次 request 一个实例
+-->
+3,request：在一次 Http 请求中，容器会返回该 Bean 的同一实例。而对不同的 Http 请求则会
+产生新的 Bean，而且该 bean 仅在当前 Http Request 内有效,当前 Http 请求结束，该 bean
+实例也将会被销毁。
+-->
+4,session：在一次 Http Session 中，容器会返回该 Bean 的同一实例。而对不同的 Session 请
+求则会创建新的实例，该 bean 实例仅在当前 Session 内有效。同 Http 请求相同，每一次
+session 请求创建新的实例，而不同的实例之间不共享属性，且实例仅在自己的 session 请求
+内有效，请求结束，则实例将被销毁。
+-->
+5,global Session：在一个全局的 Http Session 中，容器会返回该 Bean 的同一个实例，仅在
+使用 portlet context 时有效。
+
+Spring Bean 生命周期:
+
+实例化
+1. 实例化一个 Bean，也就是我们常说的 new。
+IOC 依赖注入
+2. 按照 Spring 上下文对实例化的 Bean 进行配置，也就是 IOC 注入。
+setBeanName 实现
+3. 如果这个 Bean 已经实现了 BeanNameAware 接口，会调用它实现的 setBeanName(String)
+方法，此处传递的就是 Spring 配置文件中 Bean 的 id 值
+BeanFactoryAware 实现
+4. 如果这个 Bean 已经实现了 BeanFactoryAware 接口，会调用它实现的 setBeanFactory，
+setBeanFactory(BeanFactory)传递的是 Spring 工厂自身（可以用这个方式来获取其它 Bean，
+只需在 Spring 配置文件中配置一个普通的 Bean 就可以）。
+13/04/2018 Page 125 of 283
+ApplicationContextAware 实现
+5. 如果这个 Bean 已经实现了 ApplicationContextAware 接口，会调用
+setApplicationContext(ApplicationContext)方法，传入 Spring 上下文（同样这个方式也
+可以实现步骤 4 的内容，但比 4 更好，因为 ApplicationContext 是 BeanFactory 的子接
+口，有更多的实现方法）
+postProcessBeforeInitialization 接口实现-初始化预处理
+6. 如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用
+postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor 经常被用
+作是 Bean 内容的更改，并且由于这个是在 Bean 初始化结束时调用那个的方法，也可以被应
+用于内存或缓存技术。
+init-method
+7. 如果 Bean 在 Spring 配置文件中配置了 init-method 属性会自动调用其配置的初始化方法。
+postProcessAfterInitialization
+8. 如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用
+postProcessAfterInitialization(Object obj, String s)方法。
+注：以上工作完成以后就可以应用这个 Bean 了，那这个 Bean 是一个 Singleton 的，所以一
+般情况下我们调用同一个 id 的 Bean 会是在内容地址相同的实例，当然在 Spring 配置文件中
+也可以配置非 Singleton。 Destroy 过期自动清理阶段
+9. 当 Bean 不再需要时，会经过清理阶段，如果 Bean 实现了 DisposableBean 这个接口，会调
+用那个其实现的 destroy()方法；
+destroy-method 自配置清理
+10. 最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的
+销毁方法。
+
+Spring 依赖注入四种方式 ：构造器注入 set注入 静态工厂注入 实列工厂
+
+5 种不同方式的自动装配
+Spring 装配包括手动装配和自动装配，手动装配是有基于 xml 装配、构造方法、setter 方法等
+自动装配有五种自动装配的方式，可以用来指导 Spring 容器用自动装配方式来进行依赖注入。
+1. no：默认的方式是不进行自动装配，通过显式设置 ref 属性来进行装配。
+2. byName：通过参数名 自动装配，Spring 容器在配置文件中发现 bean 的 autowire 属性被设
+置成 byname，之后容器试图匹配、装配和该 bean 的属性具有相同名字的 bean。
+3. byType：通过参数类型自动装配，Spring 容器在配置文件中发现 bean 的 autowire 属性被
+设置成 byType，之后容器试图匹配、装配和该 bean 的属性具有相同类型的 bean。如果有多
+个 bean 符合条件，则抛出错误。
+4. constructor：这个方式类似于 byType， 但是要提供给构造器参数，如果没有确定的带参数
+的构造器参数类型，将会抛出异常。
+5. autodetect：首先尝试使用 constructor 来自动装配，如果无法工作，则使用 byType 方式
+
+Spring Aop 原理
+
+并将其命名为"Aspect"，即切面。所谓"切面"，简单说就是那些与业务无关，却为业务模块所共
+同调用的逻辑或责任封装起来，便于减少系统的重复代码，降低模块之间的耦合度，并有利于未
+来的可操作性和可维护性。
+使用"横切"技术，AOP 把软件系统分为两个部分：核心关注点和横切关注点。业务处理的主要流
+程是核心关注点，与之关系不大的部分是横切关注点。横切关注点的一个特点是，他们经常发生
+在核心关注点的多处，而各处基本相似，比如权限认证、日志、事物。AOP 的作用在于分离系统
+中的各种关注点，将核心关注点和横切关注点分离开来。
+AOP 主要应用场景有：
+1. Authentication 权限
+2. Caching 缓存
+3. Context passing 内容传递
+4. Error handling 错误处理
+5. Lazy loading 懒加载
+6. Debugging 调试
+7. logging, tracing, profiling and monitoring 记录跟踪 优化 校准
+8. Performance optimization 性能优化
+9. Persistence 持久化
+10. Resource pooling 资源池
+11. Synchronization 同步
+12. Transactions 事务
+
+
+6.1.8.2. AOP 核心概念
+1、切面（aspect）：类是对物体特征的抽象，切面就是对横切关注点的抽象
+2、横切关注点：对哪些方法进行拦截，拦截后怎么处理，这些关注点称之为横切关注点。 3、连接点（joinpoint）：被拦截到的点，因为 Spring 只支持方法类型的连接点，所以在 Spring
+中连接点指的就是被拦截到的方法，实际上连接点还可以是字段或者构造器。 4、切入点（pointcut）：对连接点进行拦截的定义
+5、通知（advice）：所谓通知指的就是指拦截到连接点之后要执行的代码，通知分为前置、后置、
+异常、最终、环绕通知五类。 6、目标对象：代理的目标对象
+7、织入（weave）：将切面应用到目标对象并导致代理对象创建的过程
+
+AOP 两种代理方式:JDKProxy 和 Cglib
+默认的策略是如果目标类是接口，
+则使用 JDK 动态代理技术，否则使用 Cglib 来生成代理。
+
+JDK 动态接口代理
+1. JDK 动态代理主要涉及到 java.lang.reflect 包中的两个类：Proxy 和 InvocationHandler。
+InvocationHandler是一个接口，通过实现该接口定义横切逻辑，并通过反射机制调用目标类
+的代码，动态将横切逻辑和业务逻辑编制在一起。Proxy 利用 InvocationHandler 动态创建
+一个符合某一接口的实例，生成目标类的代理对象。
+
+CGLib 动态代理
+2. ：CGLib 全称为 Code Generation Library，是一个强大的高性能，高质量的代码生成类库，
+可以在运行期扩展 Java 类与实现 Java 接口，CGLib 封装了 asm，可以再运行期动态生成新
+的 class。和 JDK 动态代理相比较：JDK 创建代理有一个限制，就是只能为接口创建代理实例，
+而对于没有通过接口定义业务方法的类，则可以通过 CGLib 创建动态代理。
+
+
+
+Spring MVC 原理
+Spring 的模型-视图-控制器（MVC）框架是围绕一个 DispatcherServlet 来设计的，这个 Servlet
+会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染
+等，甚至还能支持文件上传。
+
+Http 请求到 DispatcherServlet
+(1) 客户端请求提交到 DispatcherServlet。
+HandlerMapping 寻找处理器
+(2) 由 DispatcherServlet 控制器查询一个或多个 HandlerMapping，找到处理请求的
+Controller。
+调用处理器 Controller
+(3) DispatcherServlet 将请求提交到 Controller。
+Controller 调用业务逻辑处理后，返回 ModelAndView
+(4)(5)调用业务处理和返回结果：Controller 调用业务逻辑处理后，返回 ModelAndView。
+DispatcherServlet 查询 ModelAndView
+(6)(7)处理视图映射并返回模型： DispatcherServlet 查询一个或多个 ViewResoler 视图解析器，
+找到 ModelAndView 指定的视图。
+ModelAndView 反馈浏览器 HTTP
+(8) Http 响应：视图负责将结果显示到客户端。
+
+
+Spring Boot 原理
+Spring Boot 是由 Pivotal 团队提供的全新框架，其设计目的是用来简化新 Spring 应用的初始搭
+建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的
+配置。通过这种方式，Spring Boot 致力于在蓬勃发展的快速应用开发领域(rapid application
+development)成为领导者。其特点如下：
+1. 创建独立的 Spring 应用程序
+2. 嵌入的 Tomcat，无需部署 WAR 文件
+3. 简化 Maven 配置
+4. 自动配置 Spring
+5. 提供生产就绪型功能，如指标，健康检查和外部配置
+6. 绝对没有代码生成和对 XML 没有要求配置 [1]
+
+--------------------------------------------
+Mybatis 缓存
+Mybatis 中有一级缓存和二级缓存，默认情况下一级缓存是开启的，而且是不能关闭的。一级缓存
+是指 SqlSession 级别的缓存，当在同一个 SqlSession 中进行相同的 SQL 语句查询时，第二次以后的查询不会从数据库查询，而是直接从缓存中获取，一级缓存最多缓存 1024 条 SQL。二级缓存是指可以跨 SqlSession 的缓存。是 mapper 级别的缓存，对于 mapper 级别的缓存不同的sqlsession 是可以共享的
+
+Mybatis 的一级缓存原理（sqlsession 级别）
+第一次发出一个查询 sql，sql 查询结果写入 sqlsession 的一级缓存中，缓存使用的数据结构是一个 map。
+key：MapperID+offset+limit+Sql+所有的入参
+value：用户信息
+同一个 sqlsession 再次发出相同的 sql，就从缓存中取出数据。如果两次中间出现 commit 操作
+（修改、添加、删除），本 sqlsession 中的一级缓存区域全部清空，下次再去缓存中查询不到所
+以要从数据库查询，从数据库查询到再写入缓存。
+
+二级缓存原理（mapper 基本）
+二级缓存的范围是 mapper 级别（mapper 同一个命名空间），mapper 以命名空间为单位创建缓
+存数据结构，结构是 map。mybatis 的二级缓存是通过 CacheExecutor 实现的。CacheExecutor
+13/04/2018 Page 139 of 283
+其实是 Executor 的代理对象。所有的查询操作，在 CacheExecutor 中都会先匹配缓存中是否存
+在，不存在则查询数据库。
+key：MapperID+offset+limit+Sql+所有的入参
+
+具体使用需要配置：
+1. Mybatis 全局配置中启用二级缓存配置
+2. 在对应的 Mapper.xml 中配置 cache 节点
+3. 在对应的 select 查询节点中添加 useCache=true
+
+
+----------------------------------------------------
+
+TCP 三次握手/四次挥手
+TCP 在传输之前会进行三次沟通，一般称为“三次握手”，传完数据断开的时候要进行四次沟通，一般
+称为“四次挥手”。
+
+--------------------------------------
+HTTP 原理
+HTTP 是一个无状态的协议。无状态是指客户机（Web 浏览器）和服务器之间不需要建立持久的连接，
+这意味着当一个客户端向服务器端发出请求，然后服务器返回响应(response)，连接就被关闭了，在服务器端不保留连接的有关信息.HTTP 遵循请求(Request)/应答(Response)模型。客户机（浏览器）向服务器发送请求，服务器处理请求并返回适当的应答。所有 HTTP 连接都被构造成一套请求和应答。
+
+---------------------------------------------------------------------
+
+HTTPS（全称：Hypertext Transfer Protocol over Secure Socket Layer），是以安全为目标的
+HTTP 通道，简单讲是 HTTP 的安全版。即 HTTP 下加入 SSL 层，HTTPS 的安全基础是 SSL。其所用
+的端口号是 443。
+
+过程大致如下：
+13/04/2018 Page 167 of 283
+建立连接获取证书
+1） SSL 客户端通过 TCP 和服务器建立连接之后（443 端口），并且在一般的 tcp 连接协商（握
+手）过程中请求证书。即客户端发出一个消息给服务器，这个消息里面包含了自己可实现的算
+法列表和其它一些需要的消息，SSL 的服务器端会回应一个数据包，这里面确定了这次通信所
+需要的算法，然后服务器向客户端返回证书。（证书里面包含了服务器信息：域名。申请证书
+的公司，公共秘钥）。
+证书验证
+2） Client 在收到服务器返回的证书后，判断签发这个证书的公共签发机构，并使用这个机构的公
+共秘钥确认签名是否有效，客户端还会确保证书中列出的域名就是它正在连接的域名。
+数据加密和传输
+3） 如果确认证书有效，那么生成对称秘钥并使用服务器的公共秘钥进行加密。然后发送给服务
+器，服务器使用它的私钥对它进行解密，这样两台计算机可以开始进行对称加密进行通信。
+--------------------------------------------------------------------
+
+. CDN 原理
+CND 一般包含分发服务系统、负载均衡系统和管理系统
+9.1.5.1. 分发服务系统
+其基本的工作单元就是各个 Cache 服务器。负责直接响应用户请求，将内容快速分发到用户；同时还
+负责内容更新，保证和源站内容的同步。
+
+
+9.1.5.1. 分发服务系统
+其基本的工作单元就是各个 Cache 服务器。负责直接响应用户请求，将内容快速分发到用户；同时还
+负责内容更新，保证和源站内容的同步。
+13/04/2018 Page 168 of 283
+根据内容类型和服务种类的不同，分发服务系统分为多个子服务系统，如：网页加速服务、流媒体加速
+服务、应用加速服务等。每个子服务系统都是一个分布式的服务集群，由功能类似、地域接近的分布部
+署的 Cache 集群组成。
+在承担内容同步、更新和响应用户请求之外，分发服务系统还需要向上层的管理调度系统反馈各个
+Cache 设备的健康状况、响应情况、内容缓存状况等，以便管理调度系统能够根据设定的策略决定由
+哪个 Cache 设备来响应用户的请求。
+
+
+9.1.5.2. 负载均衡系统：
+负载均衡系统是整个 CDN 系统的中枢。负责对所有的用户请求进行调度，确定提供给用户的最终访问
+地址。
+使用分级实现。最基本的两极调度体系包括全局负载均衡（GSLB）和本地负载均衡（SLB）。
+GSLB 根据用户地址和用户请求的内容，主要根据就近性原则，确定向用户服务的节点。一般通过 DNS
+解析或者应用层重定向（Http 3XX 重定向）的方式实现。
+SLB 主要负责节点内部的负载均衡。当用户请求从 GSLB 调度到 SLB 时，SLB 会根据节点内各个
+Cache 设备的工作状况和内容分布情况等对用户请求重定向。SLB 的实现有四层调度（LVS）、七层调
+度（Nginx）和链路负载调度等。
+
+
+9.1.5.3. 管理系统：
+分为运营管理和网络管理子系统。
+网络管理系统实现对 CDN 系统的设备管理、拓扑管理、链路监控和故障管理，为管理员提供对全网资
+源的可视化的集中管理，通常用 web 方式实现。
+运营管理是对 CDN 系统的业务管理，负责处理业务层面的与外界系统交互所必须的一些收集、整理、
+交付工作。包括用户管理、产品管理、计费管理、统计分析等。
+
+
+------------------------------------------------
+
+. Zookeeper 概念
+Zookeeper 是一个分布式协调服务，可用于服务发现，分布式锁，分布式领导选举，配置管理等。
+Zookeeper 提供了一个类似于 Linux 文件系统的树形结构（可认为是轻量级的内存文件系统，但
+只适合存少量信息，完全不适合存储大量文件或者大文件），同时提供了对于每个节点的监控与
+通知机制。
+
+11.1.1. Zookeeper 角色
+Zookeeper 集群是一个基于主从复制的高可用集群，每个服务器承担如下三种角色中的一种
+
+11.1.1.1. Leader
+1. 一个 Zookeeper 集群同一时间只会有一个实际工作的 Leader，它会发起并维护与各 Follwer
+及 Observer 间的心跳。
+2. 所有的写操作必须要通过 Leader 完成再由 Leader 将写操作广播给其它服务器。只要有超过
+半数节点（不包括 observeer 节点）写入成功，该写请求就会被提交（类 2PC 协议）。
+
+
+
+11.1.1.2. Follower
+1. 一个 Zookeeper 集群可能同时存在多个 Follower，它会响应 Leader 的心跳，
+2. Follower 可直接处理并返回客户端的读请求，同时会将写请求转发给 Leader 处理，
+3. 并且负责在 Leader 处理写请求时对请求进行投票。
+
+
+11.1.1.3. Observer
+角色与 Follower 类似，但是无投票权。Zookeeper 需保证高可用和强一致性，为了支持更多的客
+户端，需要增加更多 Server；Server 增多，投票阶段延迟增大，影响性能；引入 Observer，
+Observer 不参与投票； Observers 接受客户端的连接，并将写请求转发给 leader 节点； 加入更多 Observer 节点，提高伸缩性，同时不影响吞吐率。
+
+Zookeeper 工作原理（原子广播）
+
+1. Zookeeper 的核心是原子广播，这个机制保证了各个 server 之间的同步。实现这个机制
+的协议叫做 Zab 协议。Zab 协议有两种模式，它们分别是恢复模式和广播模式。
+2. 当服务启动或者在领导者崩溃后，Zab 就进入了恢复模式，当领导者被选举出来，且大多
+数 server 的完成了和 leader 的状态同步以后，恢复模式就结束了。
+3. 状态同步保证了 leader 和 server 具有相同的系统状态
+4. 一旦 leader 已经和多数的 follower 进行了状态同步后，他就可以开始广播消息了，即进
+入广播状态。这时候当一个 server 加入 zookeeper 服务中，它会在恢复模式下启动，发
+现 leader，并和 leader 进行状态同步。待到同步结束，它也参与消息广播。Zookeeper
+服务一直维持在 Broadcast 状态，直到 leader 崩溃了或者 leader 失去了大部分的
+followers 支持。
+5. 广播模式需要保证 proposal 被按顺序处理，因此 zk 采用了递增的事务 id 号(zxid)来保
+证。所有的提议(proposal)都在被提出的时候加上了 zxid。
+6. 实现中 zxid 是一个 64 为的数字，它高 32 位是 epoch 用来标识 leader 关系是否改变，
+每次一个 leader 被选出来，它都会有一个新的 epoch。低 32 位是个递增计数。
+7. 当 leader 崩溃或者 leader 失去大多数的 follower，这时候 zk 进入恢复模式，恢复模式
+需要重新选举出一个新的 leader，让所有的 server 都恢复到一个正确的状态。
+
+
+
+
+
+
+
+
+
+
+

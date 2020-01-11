@@ -36,12 +36,20 @@ public enum ExceptionEnum {
     GOODS_NOT_FOUND(204,"商品没有找到"),
     BRAND_FIND_FAILED(204,"根据categoryId查询品牌失败"),
     FIND_SKUS_BY_SPUID_FAILED(204,"根据spuId查询skus数据为空"),
-    INVALID_PARAM_ERROR(402,"请求参数有误"),
+    INVALID_PARAM_ERROR(400,"请求参数有误"),
     INVALID_REQUEST_PARAM(402,"无效的请求参数"),
     DATA_NOT_FOUND(204,"没有查询到数据"),
     DIRECTORY_WRITER_ERROR(500,"【静态页服务】创建静态页目录失败"),
     FILE_WRITER_ERROR(500,"静态页服务】静态页生成失败"),
     DATA_NOT_FILED(500,"数据查询失败"),
+    INVALID_PHONE_NUMBER(400,"手机号参数有误"),
+    SEND_MESSAGE_ERROR(500,"服务端短信发送失败"),
+    DATA_SAVE_ERROR(500,"数据保存失败"),
+    USER_SERVICE_ERROR(204,"用户名或者密码错误"),
+    INVALID_TOKEN_COOKIE(401,"请求参数不合法"),
+    DATA_IS_NULL(400,"请求参数为空"),
+    CART_IS_NULL(400,"购物车为空"),
+    CART_NOT_FOUND(400,"商品已经被删除"),
     DATA_TRANSFER_ERROR(500, "数据转换异常");
 
     private int status;

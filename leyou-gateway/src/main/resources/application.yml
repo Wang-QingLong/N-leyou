@@ -9,10 +9,17 @@ zuul:
     leyou-item-service: /item/**
     leyou-item-upload:  /upload/**
     search-service:    /search/**
+    user-service:      /user/**
+    auth-service:      /auth/**
+    cart-service:      /cart/**
   ignored-services:    #设置服务路由的忽略
     - leyou-item-service
     - leyou-item-upload
     - search-service
+    - user-service
+    - auth-service
+    - cart-service
+  sensitive-headers:    #什么都不写，就是关闭zuul的敏感头过滤信息，在Token那使用了
 
 
 #hystrix就是衡量ribbon的尺子，所以时间必须大于ribbon的总和
@@ -57,3 +64,21 @@ ly:
       - HEAD
     maxAge: 3600
     filterPath: "/**"
+  jwt:
+    pubKeyPath: F:/heima/rsa/id_rsa.pub  #  # D:/heima/rsa/id_rsa.pub # 公钥地址
+    app:
+      id: 7       #当前服务的id 网关在表中id是7
+      secret: api-gateway    #服务密码，测试阶段使用的是服务的名称
+      headerName: heima88    #请求头名称
+    user:
+      cookieName: LY_TOKEN
+
+  filter:                         #白名单
+    allowPaths:
+      - /api/auth/login
+      - /api/search
+      - /api/user/register
+      - /api/user/check
+      - /api/user/code
+      - /api/item
+      - /api/auth/verify

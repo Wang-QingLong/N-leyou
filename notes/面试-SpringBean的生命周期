@@ -1,0 +1,45 @@
+1.Spring对Bean进行实例化（相当于程序中的new Xx()）。
+
+2.Spring将值和Bean的引用注入进Bean对应的属性中
+
+3.如果Bean实现了BeanNameAware接口，Spring将Bean的ID传递给setBeanName()方法。
+
+（实现BeanNameAware清主要是为了通过Bean的引用来获得Bean的ID，一般业务中是很少有用到Bean的ID的）。
+
+4.如果Bean实现了BeanFactoryAware接口，Spring将调用setBeanDactory(BeanFactory bf)方法并把BeanFactory容器实例作为参数传入。
+
+（实现BeanFactoryAware 主要目的是为了获取Spring容器，如Bean通过Spring容器发布事件等）。
+
+在spring2.0之前bean只有2种作用域即：singleton(单例)、non-singleton（也称prototype），Spring2.0以后，增加了session、request、global session三种专用于Web应用程序上下文的Bean。因此，默认情况下Spring2.0现在有五种类型的Bean.
+
+当一个bean的作用域设置为singleton，那么Spring IOC容器中只会存在一个共享的bean实例，并且所有对bean的请求，只要id与该bean定义相匹配，则只会返回bean的同一实例。换言之，当把一个bean定义设置为singleton作用域时，Spring IOC容器只会创建该bean定义的唯一实例。
+
+-------------------------------------------------------------------
+
+spring中bean完整的生命周期:
+1，实例化（当我们加载beans.xml文件）实例化到内存。证明：它会调用bean里面的无参构造。
+2，设置属性值（调用set方法设置属性）。
+3，如果实现了BeanNameAware则调用BeanNameAware接口的setbeanFatroy()方法，获取Bean的id
+4，如果实现了BeanFactoryAware则可以获取BeanFactory。,
+5，如果实现了ApplicationAware则可以获取ApplicationAware。
+6，如果bean和一个后置处理器关联（实现BeanPostProcessor接口），则会自动去调用 postProcessBeforeInitialization
+7，如果实现了InitializingBean则会调用afterPropertiesSet方法。
+8，如果在配置了<bean init-method="init" />就可以在bean中定义自己的初始化方法。
+9，如果bean和一个后置处理器关联（实现BeanPostProcessor接口），则会自动去调用 postProcessAfterInitialization
+10，使用我们的bean。
+11，容器关闭。
+12，可以通过实现DisposableBean接口来调用destroy（）的销毁方法。
+13，可以在配置中，<bean destroy-method="destroy">，在bean中写销毁方法。
+
+--------------
+Spring Bean在Spring Bean Factory Container中完成其整个生命周期：以下是完成其生命周期所需的各种内容：
+
+1. Spring容器从XML文件或@Configuration中bean的定义中实例化bean。
+2. Spring依据配置中指定的属性，为bean填充所有属性。
+3. 如果bean实现BeanNameAware接口，spring调用setBeanName()方法，并传递bean的id。
+4. 如果bean实现BeanFactoryAware接口，spring将调用setBeanFactory()方法，并把自己作为参数。
+5. 如果bean实现ApplicationContextAware接口，spring将调用setApplicationContext()方法，并把ApplicationContext实例作为参数。
+6. 如果存在与bean关联的任何BeanPreProcessors（前置处理器），则调用preProcessBeforeInitialization()方法。比如Autowired等依赖注入功能是在此时完成。
+7. 如果Bean实现了InitializingBean接口，则调用bean的afterPropertiesSet()方法。
+8. 如果为bean指定了init-method，那么将调用bean的init方法。
+9. 最后，如果存在与bean关联的任何BeanPostProcessors，则将调用postProcessAfterInitialization（）方法。

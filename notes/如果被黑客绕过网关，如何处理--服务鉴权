@@ -1,0 +1,60 @@
+当被黑客绕过网关之后，我们该如何保护我们的服务
+这个时候需要用到服务鉴权，就是当请求来的时候
+判断一下该请求是否可以请求我，
+如何解决这个问题呢，首先我们需要服务来的时候，它可以带着服务id集合来
+再看下服务id集合里面是否包含我
+
+步骤；
+
+1，生成token token里面带着服务id集合信息，在common模块里面写一个实体类
+com.leyou.auth.entity.Appinfo
+里面包括服务名和目标服务id集合
+查看表tb_application  包含id  服务名service_name  密码secret
+
+开始写代码;
+
+1,在auth模块里面的controller方法内新增一个方法 也就是令牌
+注意: 这里要区分一下，cookie是浏览器的 ，只有浏览器发送的请求才有cookie,而这里
+是服务发的请求，是不存在cookie的，写方法时，方法的返回值是string，而且需要用到数据库
+所以在yml当中导入数据库信息，然后由于密码是加密的，所以需要在yml当中导入密码加密配置
+密码加密配置类也抄过来
+
+先通过id查，再通过匹配密码是否一致
+
+再生成token  将用户信息保存在token返回
+
+2，因为授权方法需要被其他的微服务调用，所以做成一个接口
+  这里新建一个模块leyou-auth-interface   AuthFeignClient供外界使用
+
+3，因为网关要去调方法，所以在网关导入依赖，启动器上开启开关，开启任务定时调度
+
+可以存放token的地方，无非2个地方，请求头和请求体，请求头不建议，因为如果在请求体中加了
+方法接收就需要写接收参数，麻烦，所以选择加在请求头当中，
+所以这里我们想到的是网关的过滤器，在里面加逻辑：
+
+逻辑：将PrivilegeTokenHolder获取的token加入请求头当中TokenFilter
+
+接下来就是解析了，这个时候我们就随便找一个服务，来玩
+比如user
+
+我们在leyou-user-service当中写一个拦截器PrivilegeTokenInterceptor，
+拦截器有三个方法，前置，后置，最后，这里我们采用前置，在前置拦截器里面写解析逻辑
+
+注意：写完拦截器之后一定要配置激活，不然不生效，所以我们创建一个类McvConfig，将
+PrivilegeTokenInterceptor，加入就可以生效了
+
+
+4，接下来，会出现一些问题，就是我们登录的时候，auth会调用user里面的方法，
+所以我们需要在auth里面写逻辑，就是获取openfeign
+于是在auth里面写task任务调度PrivilegeTokenHolder，在启动类上加任务定时器，
+获取到token之后，我们将token放在哪呢，由于请求是feign发起的，所以我们这里写了
+一个feign的拦截器，FeignTokenInterceptor，在里面将token加进去，这样auth就可以正常
+通过feign访问user了
+
+总结：服务内请求分2种，网关的请求，feign的请求，不管是哪一种，token加在头里面即可
+目标服务写个拦截器就行了
+
+思考：如果有人没有登录，请求进来了想访问订单等，
+所以我们可以在网关里面加一个全局的拦截器
+
+在全局拦截器里面，UserTokenFilter  写相关逻辑即可

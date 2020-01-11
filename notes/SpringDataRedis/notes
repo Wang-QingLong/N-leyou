@@ -1,0 +1,92 @@
+Spring Data Redis，是Spring Data 家族的一部分。 对Jedis客户端进行了封装，与spring进行了整合。可以非常方便的来实现redis的配置和操作。
+
+    5.2.3.RedisTemplate基本操作
+
+与以往学习的套件类似，Spring Data 为 Redis 提供了一个工具类：RedisTemplate。里面封装了对于Redis的五种数据结构的各种操作，包括：
+
+- redisTemplate.opsForValue() ：操作字符串
+- redisTemplate.opsForHash() ：操作hash
+- redisTemplate.opsForList()：操作list
+- redisTemplate.opsForSet()：操作set
+- redisTemplate.opsForZSet()：操作有序zset
+
+
+
+StringRedisTemplate 和ReidsTemplate区别
+
+
+
+三、StringRedisTemplate常用操作
+
+stringRedisTemplate.opsForValue().set("test", "100",60*10,TimeUnit.SECONDS);//向redis里存入数据和设置缓存时间
+
+stringRedisTemplate.boundValueOps("test").increment(-1);//val做-1操作
+
+stringRedisTemplate.opsForValue().get("test")//根据key获取缓存中的val
+
+stringRedisTemplate.boundValueOps("test").increment(1);//val +1
+
+stringRedisTemplate.getExpire("test")//根据key获取过期时间
+
+stringRedisTemplate.getExpire("test",TimeUnit.SECONDS)//根据key获取过期时间并换算成指定单位
+
+stringRedisTemplate.delete("test");//根据key删除缓存
+
+stringRedisTemplate.hasKey("546545");//检查key是否存在，返回boolean值
+
+stringRedisTemplate.opsForSet().add("red_123", "1","2","3");//向指定key中存放set集合
+
+stringRedisTemplate.expire("red_123",1000 , TimeUnit.MILLISECONDS);//设置过期时间
+
+stringRedisTemplate.opsForSet().isMember("red_123", "1")//根据key查看集合中是否存在指定数据
+
+stringRedisTemplate.opsForSet().members("red_123");//根据key获取set集合
+单测示例:
+
+package cn.test;
+
+import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.junit4.SpringRunner;
+import com.blog.springboot.Application;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class PracticeJunitTest {
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+
+    @Test
+    public void testConnectionRedis() throws Exception {
+
+        stringRedisTemplate.opsForValue().set("youcong", "ok");
+
+        System.out.println(stringRedisTemplate.opsForValue().get("youcong"));
+    }
+
+
+}
+
+
+
+
+
+
+
+
+StringRedisTemplate
+
+RedisTemplate在创建时，可以指定其泛型类型：
+
+- K：代表key 的数据类型
+- V: 代表value的数据类型
+
+注意：这里的类型不是Redis中存储的数据类型，而是Java中的数据类型，RedisTemplate会自动将Java类型转为Redis支持的数据类型：字符串、字节、二二进制等等。
+
+不过RedisTemplate默认会采用JDK自带的序列化（Serialize）来对对象进行转换。生成的数据十分庞大，因此一般我们都会指定key和value为String类型，这样就由我们自己把对象序列化为json字符串来存储即可。
+因为大部分情况下，我们都会使用key和value都为String的RedisTemplate，因此Spring就默认提供了这样一个实现：

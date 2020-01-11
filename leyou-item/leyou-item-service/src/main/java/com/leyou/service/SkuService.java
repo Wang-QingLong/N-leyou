@@ -44,4 +44,10 @@ public interface SkuService {
      * @param spuId
      */
     void updateBySku(boolean saleable, Long spuId);
+
+    /**根据Ids查询Skus数据
+     * @param ids
+     * @return
+     */
+    List<SkuDTO> findSkusByIds(List<Long> ids);
 }

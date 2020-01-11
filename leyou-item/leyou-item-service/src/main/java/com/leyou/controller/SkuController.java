@@ -23,7 +23,9 @@ public class SkuController {
     @Autowired
     private SkuService skuService;
 
-    /**根据spuId查询sku数据，回显
+    /**
+     * 根据spuId查询sku数据，回显
+     *
      * @param id
      * @return
      */
@@ -31,4 +33,20 @@ public class SkuController {
     public ResponseEntity<List<SkuDTO>> findSkusBySpuId(@RequestParam("id") Long id) {
         return ResponseEntity.ok(this.skuService.findSkusBySpuId(id));
     }
+
+
+    /**
+     * 根据Ids查询Skus数据
+     *
+     * @param ids
+     * @return
+     */
+    @GetMapping("/list")
+    public ResponseEntity<List<SkuDTO>> findSkusByIds(
+            @RequestParam("ids") List<Long> ids
+    ) {
+        return ResponseEntity.ok(this.skuService.findSkusByIds(ids));
+    }
+
+
 }

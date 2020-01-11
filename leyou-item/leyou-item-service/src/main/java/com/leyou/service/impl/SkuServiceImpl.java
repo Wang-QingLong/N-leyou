@@ -145,4 +145,31 @@ public class SkuServiceImpl implements SkuService {
             throw new LyException(ExceptionEnum.UPDATE_SALEABLE_FAIL);
         }
     }
+
+
+    /**
+     * 根据Ids查询Skus数据
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public List<SkuDTO> findSkusByIds(List<Long> ids) {
+
+        if (CollUtil.isEmpty(ids)) {
+            log.error("前台传过来的SkuIds数据为空");
+            throw new LyException(ExceptionEnum.DATA_IS_NULL);
+        }
+
+        List<Sku> skus = null;
+
+        try {
+            skus = this.skuMapper.selectByIdList(ids);
+        } catch (Exception e) {
+            log.error("根据SkusIdS查询数据异常");
+            MySqlExceptionUtils.CheckMySqlException(e);
+        }
+
+        return BeanHelper.copyWithCollection(skus, SkuDTO.class);
+    }
 }

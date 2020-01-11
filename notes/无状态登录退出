@@ -1,0 +1,66 @@
+第一步在leyou-user-service当中的user包下controller里面写注册
+ @GetMapping("/check/{data}/{type}")checkData
+
+第二步在common当中com.leyou.auth.entity导入Playload 放载荷信息的
+                导入Utils    RsaUtils      生成和读取 从文件中
+                            JwtUtils      从文件中获取公钥和密钥
+
+第三步引入依赖jjwt
+
+
+第四步在common当中com.leyou.auth.entity导入UserInfo 用户信息，然后写一个测试类去测试
+
+第五步写测试类com.leyou.auth.AuthTest,在里面测试生成公钥和密钥，解析公钥信息，只是看看
+
+第六步测试成功了接下来开始写鉴权中心，单独写一个模块
+
+leyou-auth
+
+导入需要的依赖，采用聚合模式，
+
+通过前端发来的请求
+在网关里面配置路由路径 auth-service:      /auth/**
+
+7，编写登录方法com.leyou.auth.controller.login
+然后发现需要调用leyou-user-service里面的方法，于是写一个对外的接口采用feign形式去调用
+
+8，然后在leyou-auth的启动器上加@EnableFeignClients开始feign
+
+9,然后开始写service方法里面的登录业务逻辑
+1，生成token 2,保存在cookie在浏览器客户端  Cookie跟域名相关  Domain域名
+Cookie绑定给域名，当只有访问该域名时，Cookie才能生效
+
+10,重启之后发现Cookie不存在，这是因为zuul网关敏感头的原因，在配置里面加 sensitive-headers:
+11，重启，Cookie出现了
+
+12，开发verify 这个请求解析token,从token里面获取我们需要的个人登录信息
+逻辑:   先从request头中获取token信息，然后获取公钥信息验证身份，获取载荷里面的个人信息返回
+暂时不写优化部分
+
+13.重启刷新页面就出现了登录用户名信息了
+
+14，开发logout退出登录
+
+逻辑: 暂时不写优化部分，删除就是新建一个cookie,将cookie的域名和名字，路径都设置和之前的一样，只是时间设置为0，即代表立即删除  退出的本质就是删除，为什么不在前端删除，这是因为我们设置了js不可见，前端看不到
+
+15，思考：cookie的有效期是30分钟，当cookie时间到了，用户就需要重新登录，这样让用户频繁的登录会降低用户的
+         体验，所以，我们要让用户刷新页面的时候重新生成token和cookie，
+         具体采用的是,前台发送请求过来，证明用户还在，就重新生成cookie和token
+
+            优化1部分
+
+但是存在这样一个情况，当用户频繁
+           点击时，就会频繁的发送请求，每发送一次就生成一次，加重服务器负担，所以我们要防止这种情况发生
+
+  解决办法:  我们虽然无法预测用户什么时候过期时间，但是我们可以优化，就是让用户至少每隔一分钟，才发送一次请求
+            生成token和cookie
+       固写  优化2：为了防止用户在一分钟内频繁点，发送请求，限制用户在一分钟内不管点多少次只发送一次请求
+
+
+思考，还存在一个问题，当用户退出登录离开了，然后过了一分钟，有不法分子将该用户之前的tonken提前拷贝下来了，等用户走了他再登录
+岂不是很恐怖，
+
+解决办法 ，在退出登录时处理一些逻辑 : 利用redis做成黑名单
+在退出登录时，将token存入redis,判断，当过期时间超过了3秒(不足3秒就不管了)就将它加入黑名单，保存的时长为剩下的过期时长
+
+存入redis之后，也要在解析时verify方法内判断一下，是否在黑名单

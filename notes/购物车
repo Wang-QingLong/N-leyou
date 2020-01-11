@@ -1,0 +1,4 @@
+web本地存储主要有两种方式：
+
+- LocalStorage：localStorage 方法存储的数据没有时间限制。没有数据大小限制，是一个低配版的redis,是一个浏览器本地的数据库
+- SessionStorage：sessionStorage 方法针对一个 session 进行数据存储。当用户关闭浏览器窗口后，数据会被删除。

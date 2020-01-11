@@ -96,7 +96,7 @@
       ly.http.get("/auth/verify").then(() => {
         // 获取订单id
         const id = ly.getUrlParam("id");
-        // 查询付款金额
+        // 查询付款订单状态
         ly.http.get("/order/" + id).then(resp => {
           this.order = resp.data;
           this.order.orderId = id;
@@ -112,7 +112,7 @@
               width: 250,
               height: 250,
               colorDark: "#000000",
-              colorLight: "#ffffff",
+              colorLight: "#fcfff6",
               correctLevel: QRCode.CorrectLevel.H
             });
             // 开启定时任务，查询付款状态

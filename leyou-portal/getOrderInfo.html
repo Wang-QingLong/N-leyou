@@ -258,7 +258,7 @@
     methods: {
       submit() {
         ly.http.get("/auth/verify").then(() => {
-          // 对carts处理
+          // 对carts处理 carts就是要购买的商品数组，map运算后的carts数组变成了[{skuId:xxx,num:123},{skuId:xxx,num:123}]
           const carts = this.carts.map(({skuId, num}) => ({skuId, num}));
           const order = {
             paymentType: this.paymentType, // 支付方式
@@ -267,7 +267,7 @@
           };
           // 提交订单
           ly.http.post("/order", order, {
-            transformResponse: [function (data) {
+            transformResponse: [function (data) { //告诉js，不要手贱，不需要你转换，接收到什么就返回什么
               return data;
             }]
           }).then(resp => {

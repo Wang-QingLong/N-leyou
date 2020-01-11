@@ -1,0 +1,11 @@
+从Binlog说起
+Binlog是MySQL的逻辑操作日志，广泛应用于复制和恢复。
+MySQL 5.1以前，Statement是Binlog的默认格式，即依次记录系统接受的SQL请求；
+       5.1及以后，MySQL提供了Row和Mixed两个Binlog格式。
+
+从MySQL 5.1开始，如果打开语句级Binlog，就不支持RC和Read-Uncommited隔离级别。要想使用RC隔离级别，必须使用Mixed或Row格式。
+
+在MySQL 5.1及以上的RC隔离级别下，语句级Binlog在DR上执行的结果是不正确的
+
+总结:
+MySQL使用可重复读来作为默认隔离级别的主要原因是语句级的Binlog。RR能提供SQL语句的写可串行化，保证了绝大部分情况（不安全语句除外）的DB/DR一致。
